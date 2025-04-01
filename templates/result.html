@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Results - Heart Disease Prediction System</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
+                Heart Disease Prediction
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('history') }}">History</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container main-container">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="mb-3">Prediction Results</h1>
+                <p class="lead">
+                    Results from analyzing your heart disease data
+                </p>
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    Analysis complete! Here are your prediction results.
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up me-2"></i>
+                            Model Performance Metrics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Model Info -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <h6 class="mb-0 me-2">Model Type:</h6>
+                                    <span class="badge 
+                                        {% if result.model_type == 'ML' %}badge-ml
+                                        {% elif result.model_type == 'DL' %}badge-dl
+                                        {% elif result.model_type == 'QML' %}badge-qml
+                                        {% elif result.model_type == 'QNN' %}badge-qnn{% endif %}">
+                                        {{ result.model_type }}
+                                    </span>
+                                </div>
+                                <h6>Model Name: <span class="text-muted">{{ result.model_name }}</span></h6>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>File: <span class="text-muted">{{ result.filename }}</span></h6>
+                                <h6>Date: <span class="text-muted">{{ result.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span></h6>
+                            </div>
+                        </div>
+
+                        <!-- Metrics -->
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card metric-card">
+                                    <div class="mb-3" style="height: 150px;">
+                                        <canvas id="accuracy-chart" data-value="{{ result.accuracy }}"></canvas>
+                                    </div>
+                                    <h5>Accuracy</h5>
+                                    <div class="metric-value">{{ "%.2f"|format(result.accuracy * 100) }}%</div>
+                                    <div class="text-muted small">Correct predictions ratio</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card metric-card">
+                                    <div class="mb-3" style="height: 150px;">
+                                        <canvas id="precision-chart" data-value="{{ result.precision }}"></canvas>
+                                    </div>
+                                    <h5>Precision</h5>
+                                    <div class="metric-value">{{ "%.2f"|format(result.precision * 100) }}%</div>
+                                    <div class="text-muted small">True positives ratio</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card metric-card">
+                                    <div class="mb-3" style="height: 150px;">
+                                        <canvas id="recall-chart" data-value="{{ result.recall }}"></canvas>
+                                    </div>
+                                    <h5>Recall</h5>
+                                    <div class="metric-value">{{ "%.2f"|format(result.recall * 100) }}%</div>
+                                    <div class="text-muted small">Sensitivity measure</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card metric-card">
+                                    <div class="mb-3" style="height: 150px;">
+                                        <canvas id="f1-chart" data-value="{{ result.f1_score }}"></canvas>
+                                    </div>
+                                    <h5>F1 Score</h5>
+                                    <div class="metric-value">{{ "%.2f"|format(result.f1_score * 100) }}%</div>
+                                    <div class="text-muted small">Harmonic mean of precision & recall</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualizations -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card shadow mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-grid-3x3 me-2"></i>
+                                    Confusion Matrix
+                                </h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <img src="data:image/png;base64,{{ result.confusion_matrix_img }}" class="img-fluid" alt="Confusion Matrix">
+                                <div class="mt-2 text-muted">
+                                    Shows true vs. predicted classifications
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card shadow mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-graph-up-arrow me-2"></i>
+                                    ROC Curve
+                                </h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <img src="data:image/png;base64,{{ result.roc_curve_img }}" class="img-fluid" alt="ROC Curve">
+                                <div class="mt-2 text-muted">
+                                    Shows model performance across thresholds
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Section -->
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary me-2">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            New Prediction
+                        </a>
+                        <button id="export-button" class="btn btn-success me-2" data-session-id="{{ result.session_id }}">
+                            <i class="bi bi-download me-1"></i>
+                            Export Results
+                        </button>
+                        <a href="{{ url_for('history') }}" class="btn btn-primary">
+                            <i class="bi bi-clock-history me-1"></i>
+                            View History
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <p>
+                        <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
+                        Heart Disease Prediction System using ML, DL, and Quantum Models
+                    </p>
+                    <p class="small text-muted">
+                        Designed for medical data analysis with multiple prediction models
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+</body>
+</html>

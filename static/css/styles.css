@@ -1,0 +1,100 @@
+/* Additional custom styles to complement Bootstrap */
+
+/* Main container styling */
+.main-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+/* Card styling */
+.card {
+    margin-bottom: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Model selection cards */
+.model-card {
+    cursor: pointer;
+    height: 100%;
+}
+
+.model-card.selected {
+    border: 3px solid var(--bs-primary);
+}
+
+/* Loading animation */
+.loading-container {
+    display: none;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Results visualization */
+.results-container {
+    margin-top: 2rem;
+}
+
+.metric-card {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.plot-container {
+    margin: 1rem 0;
+}
+
+/* History table */
+.history-table th, .history-table td {
+    vertical-align: middle;
+}
+
+/* Export button */
+.export-btn {
+    margin-top: 1rem;
+}
+
+/* Footer styling */
+footer {
+    margin-top: 3rem;
+    padding: 1.5rem 0;
+    text-align: center;
+}
+
+/* Responsive image styling */
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Custom badge colors for model types */
+.badge-ml {
+    background-color: var(--bs-primary);
+}
+
+.badge-dl {
+    background-color: var(--bs-success);
+}
+
+.badge-qml {
+    background-color: var(--bs-info);
+}
+
+.badge-qnn {
+    background-color: var(--bs-warning);
+    color: var(--bs-dark);
+}
