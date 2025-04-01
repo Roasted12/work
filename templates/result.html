@@ -273,14 +273,15 @@
                                 </p>
                             </div>
                             <div class="col-md-6 text-md-end">
-                                <button type="button" class="btn btn-primary mt-2 mt-md-0" data-bs-toggle="collapse" data-bs-target="#predictionForm" aria-expanded="false" aria-controls="predictionForm">
+                                <button type="button" class="btn btn-primary mt-2 mt-md-0" data-bs-toggle="collapse" data-bs-target="#predictionForm" aria-expanded="{% if individual_prediction is defined %}false{% else %}true{% endif %}" aria-controls="predictionForm">
                                     <i class="bi bi-heart-pulse me-2"></i>
                                     Make Individual Prediction
                                 </button>
                             </div>
                         </div>
                         
-                        <div class="collapse" id="predictionForm">
+                        <!-- Show the form by default if no prediction yet -->
+                        <div class="collapse {% if individual_prediction is not defined %}show{% endif %}" id="predictionForm">
                             <div class="card card-body border-0 bg-light">
                                 <form id="individual-prediction-form" method="post" action="{{ url_for('individual_predict', session_id=result.session_id) }}">
                                     <div class="row g-3">

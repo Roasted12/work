@@ -229,6 +229,9 @@ function initModelSelection() {
     const modelCards = document.querySelectorAll('.model-card');
     const modelInput = document.getElementById('model-type');
     const modelTypeContainers = document.querySelectorAll('.model-type-container');
+    const reviewModelName = document.getElementById('review-model-name');
+    const reviewModelType = document.getElementById('review-model-type');
+    const reviewModelIcon = document.getElementById('review-model-icon');
     
     if (!modelCards.length || !modelInput) return;
     
@@ -242,12 +245,16 @@ function initModelSelection() {
             this.classList.add('selected');
             
             // Update hidden input value
-            modelInput.value = this.dataset.model;
+            const modelName = this.dataset.model;
+            modelInput.value = modelName;
             
             // Highlight selected model type
             if (modelTypeContainers.length) {
                 const modelType = this.closest('.model-type-container').dataset.modelType;
                 highlightModelType(modelType);
+                
+                // Update review section
+                updateReviewSection(modelName, modelType);
             }
         });
     });
@@ -261,6 +268,45 @@ function initModelSelection() {
                 container.classList.remove('selected-type');
             }
         });
+    }
+    
+    // Function to update review section
+    function updateReviewSection(modelName, modelType) {
+        // Only update if review elements exist (on step 3)
+        if (reviewModelName && reviewModelType && reviewModelIcon) {
+            // Update model name in review with proper formatting
+            let displayName = modelName.replace(/_/g, ' ');
+            displayName = displayName.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+            
+            reviewModelName.textContent = displayName;
+            
+            // Update model type
+            let typeText = '';
+            let iconHTML = '';
+            
+            switch(modelType) {
+                case 'ml':
+                    typeText = 'Machine Learning';
+                    iconHTML = '<i class="bi bi-diagram-3 text-primary" style="font-size: 2rem;"></i>';
+                    break;
+                case 'dl':
+                    typeText = 'Deep Learning';
+                    iconHTML = '<i class="bi bi-cpu-fill text-success" style="font-size: 2rem;"></i>';
+                    break;
+                case 'qml':
+                    typeText = 'Quantum Machine Learning';
+                    iconHTML = '<i class="bi bi-tsunami text-info" style="font-size: 2rem;"></i>';
+                    break;
+                default:
+                    typeText = 'Model';
+                    iconHTML = '<i class="bi bi-question-circle text-secondary" style="font-size: 2rem;"></i>';
+            }
+            
+            reviewModelType.textContent = typeText;
+            reviewModelIcon.innerHTML = iconHTML;
+        }
     }
 }
 
