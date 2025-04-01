@@ -310,10 +310,57 @@ def individual_predict(session_id):
             
             # Train the model
             train_func = MODEL_FUNCTIONS[model_name]
-            model, _, _, _, _ = train_func(X, y)
             
-            # Make the prediction with the individual data
-            prediction = model.predict(input_data)[0]
+            # Handle preprocessing based on model type
+            if model_type == 'ML':
+                from ml_models import preprocess_data
+                result_data = preprocess_data(X, y)
+                if isinstance(result_data, tuple) and len(result_data) >= 4:
+                    X_train, X_test, y_train, y_test = result_data[:4]
+                    scaler = result_data[-1] if len(result_data) > 4 else None
+                else:
+                    # Fallback if unexpected result format
+                    X_train, X_test, y_train, y_test = X, X, y, y
+                    scaler = None
+                # Scale the input data using the same scaler
+                input_data_scaled = scaler.transform(input_data) if scaler else input_data
+                model, _, _, _, _ = train_func(X, y)
+                # Make the prediction with the scaled individual data
+                prediction = model.predict(input_data_scaled)[0]
+            elif model_type == 'DL':
+                from dl_models import preprocess_data
+                result_data = preprocess_data(X, y)
+                if isinstance(result_data, tuple) and len(result_data) >= 4:
+                    X_train, X_test, y_train, y_test = result_data[:4]
+                    scaler = result_data[-1] if len(result_data) > 4 else None
+                else:
+                    # Fallback if unexpected result format
+                    X_train, X_test, y_train, y_test = X, X, y, y
+                    scaler = None
+                # Scale the input data using the same scaler
+                input_data_scaled = scaler.transform(input_data) if scaler else input_data
+                model, _, _, _, _ = train_func(X, y)
+                # Make the prediction with the scaled individual data
+                prediction = model.predict(input_data_scaled)[0]
+            elif model_type == 'QML' or model_type == 'QNN':
+                from quantum_models import preprocess_data
+                result_data = preprocess_data(X, y)
+                if isinstance(result_data, tuple) and len(result_data) >= 4:
+                    X_train, X_test, y_train, y_test = result_data[:4]
+                    scaler = result_data[-1] if len(result_data) > 4 else None
+                else:
+                    # Fallback if unexpected result format
+                    X_train, X_test, y_train, y_test = X, X, y, y
+                    scaler = None
+                # Scale the input data using the same scaler
+                input_data_scaled = scaler.transform(input_data) if scaler else input_data
+                model, _, _, _, _ = train_func(X, y)
+                # Make the prediction with the scaled individual data
+                prediction = model.predict(input_data_scaled)[0]
+            else:
+                # Fallback to direct prediction
+                model, _, _, _, _ = train_func(X, y)
+                prediction = model.predict(input_data)[0]
             
             # Redirect to result page with the prediction
             return redirect(url_for('show_result', session_id=session_id, individual_prediction=int(prediction)))
