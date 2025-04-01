@@ -246,8 +246,221 @@
                     </div>
                 </div>
 
-                <!-- Actions Section -->
+                <!-- Individual Prediction Section -->
                 <div class="card shadow mb-4 animate__animated animate__fadeInUp animate__delay-3s">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-fill me-2"></i>
+                            Individual Prediction
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center mb-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <h5 class="mb-0">Get a personalized prediction</h5>
+                                </div>
+                                <p class="mb-0">
+                                    Enter your own health parameters to see your heart disease risk prediction using the trained model:
+                                    <span class="badge 
+                                        {% if result.model_type == 'ML' %}badge-ml
+                                        {% elif result.model_type == 'DL' %}badge-dl
+                                        {% elif result.model_type == 'QML' %}badge-qml
+                                        {% elif result.model_type == 'QNN' %}badge-qnn{% endif %}">
+                                        {{ result.model_type }}
+                                    </span>
+                                    <span class="ms-1">{{ result.model_name }}</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <button type="button" class="btn btn-primary mt-2 mt-md-0" data-bs-toggle="collapse" data-bs-target="#predictionForm" aria-expanded="false" aria-controls="predictionForm">
+                                    <i class="bi bi-heart-pulse me-2"></i>
+                                    Make Individual Prediction
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="collapse" id="predictionForm">
+                            <div class="card card-body border-0 bg-light">
+                                <form id="individual-prediction-form" method="post" action="{{ url_for('individual_predict', session_id=result.session_id) }}">
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label for="age" class="form-label">Age</label>
+                                            <input type="number" class="form-control" id="age" name="age" min="1" max="120" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="sex" class="form-label">Sex</label>
+                                            <select class="form-select" id="sex" name="sex" required>
+                                                <option value="" selected disabled>Select</option>
+                                                <option value="1">Male</option>
+                                                <option value="0">Female</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="cp" class="form-label">Chest Pain Type</label>
+                                            <select class="form-select" id="cp" name="cp" required>
+                                                <option value="" selected disabled>Select</option>
+                                                <option value="0">Typical Angina</option>
+                                                <option value="1">Atypical Angina</option>
+                                                <option value="2">Non-anginal Pain</option>
+                                                <option value="3">Asymptomatic</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-md-4">
+                                            <label for="trestbps" class="form-label">Resting Blood Pressure (mm Hg)</label>
+                                            <input type="number" class="form-control" id="trestbps" name="trestbps" min="50" max="250" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="chol" class="form-label">Cholesterol (mg/dl)</label>
+                                            <input type="number" class="form-control" id="chol" name="chol" min="50" max="600" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="fbs" class="form-label">Fasting Blood Sugar > 120 mg/dl</label>
+                                            <select class="form-select" id="fbs" name="fbs" required>
+                                                <option value="" selected disabled>Select</option>
+                                                <option value="1">Yes</option>
+                                                <option value="0">No</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-md-4">
+                                            <label for="restecg" class="form-label">Resting ECG Results</label>
+                                            <select class="form-select" id="restecg" name="restecg" required>
+                                                <option value="" selected disabled>Select</option>
+                                                <option value="0">Normal</option>
+                                                <option value="1">ST-T Wave Abnormality</option>
+                                                <option value="2">Left Ventricular Hypertrophy</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="thalach" class="form-label">Max Heart Rate Achieved</label>
+                                            <input type="number" class="form-control" id="thalach" name="thalach" min="50" max="250" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="exang" class="form-label">Exercise Induced Angina</label>
+                                            <select class="form-select" id="exang" name="exang" required>
+                                                <option value="" selected disabled>Select</option>
+                                                <option value="1">Yes</option>
+                                                <option value="0">No</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-md-4">
+                                            <label for="oldpeak" class="form-label">ST Depression Induced by Exercise</label>
+                                            <input type="number" class="form-control" id="oldpeak" name="oldpeak" min="0" max="10" step="0.1" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="slope" class="form-label">Slope of Peak Exercise ST Segment</label>
+                                            <select class="form-select" id="slope" name="slope" required>
+                                                <option value="" selected disabled>Select</option>
+                                                <option value="0">Upsloping</option>
+                                                <option value="1">Flat</option>
+                                                <option value="2">Downsloping</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="ca" class="form-label">Number of Major Vessels</label>
+                                            <select class="form-select" id="ca" name="ca" required>
+                                                <option value="" selected disabled>Select</option>
+                                                <option value="0">0</option>
+                                                <option value="1">1</option>
+                                                <option value="2">2</option>
+                                                <option value="3">3</option>
+                                                <option value="4">4</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-md-4">
+                                            <label for="thal" class="form-label">Thalassemia</label>
+                                            <select class="form-select" id="thal" name="thal" required>
+                                                <option value="" selected disabled>Select</option>
+                                                <option value="1">Normal</option>
+                                                <option value="2">Fixed Defect</option>
+                                                <option value="3">Reversible Defect</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="alert alert-info mt-4 mb-0">
+                                                <div class="d-flex">
+                                                    <div class="me-3">
+                                                        <i class="bi bi-info-circle-fill"></i>
+                                                    </div>
+                                                    <div>
+                                                        <p class="mb-0 small">
+                                                            <strong>Note:</strong> These values are used solely for prediction purposes. No personal data will be stored.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center mt-4">
+                                        <button type="submit" class="btn btn-success btn-lg">
+                                            <i class="bi bi-magic me-2"></i>
+                                            Calculate Prediction
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Prediction Result (Hidden until prediction is made) -->
+                        {% if individual_prediction is defined %}
+                        <div id="prediction-result" class="mt-4">
+                            <div class="card border-0 bg-dark">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-3 text-center mb-3 mb-md-0">
+                                            {% if individual_prediction == 1 %}
+                                            <div class="prediction-circle risk">
+                                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                            </div>
+                                            {% else %}
+                                            <div class="prediction-circle healthy">
+                                                <i class="bi bi-heart-fill"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-9">
+                                            <h4 class="mb-3">
+                                                {% if individual_prediction == 1 %}
+                                                <span class="text-danger">Higher Risk of Heart Disease</span>
+                                                {% else %}
+                                                <span class="text-success">Lower Risk of Heart Disease</span>
+                                                {% endif %}
+                                            </h4>
+                                            <p>
+                                                {% if individual_prediction == 1 %}
+                                                Based on the values you entered, the model predicts a higher risk of heart disease. Please consult with a healthcare professional for proper evaluation.
+                                                {% else %}
+                                                Based on the values you entered, the model predicts a lower risk of heart disease. However, this is not a medical diagnosis. Regular check-ups are still recommended.
+                                                {% endif %}
+                                            </p>
+                                            <div class="alert alert-warning mb-0">
+                                                <i class="bi bi-shield-exclamation me-2"></i>
+                                                <strong>Disclaimer:</strong> This prediction is based on a statistical model and should not be considered medical advice. Always consult with a healthcare professional for proper diagnosis and treatment.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Actions Section -->
+                <div class="card shadow mb-4 animate__animated animate__fadeInUp animate__delay-4s">
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">
                             <i class="bi bi-gear-fill me-2"></i>

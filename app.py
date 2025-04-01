@@ -194,7 +194,12 @@ def show_result(session_id):
             flash('Result not found')
             return redirect(url_for('index'))
         
-        return render_template('result.html', result=result)
+        # Check if there's an individual prediction in flash
+        individual_prediction = None
+        if 'individual_prediction' in request.args:
+            individual_prediction = int(request.args.get('individual_prediction'))
+        
+        return render_template('result.html', result=result, individual_prediction=individual_prediction)
     
     except Exception as e:
         logger.error(f"Error displaying result: {str(e)}")
@@ -256,6 +261,71 @@ def history():
     except Exception as e:
         logger.error(f"Error retrieving history: {str(e)}")
         flash(f'Error retrieving history: {str(e)}')
+        return redirect(url_for('index'))
+
+@app.route('/individual-predict/<session_id>', methods=['POST'])
+def individual_predict(session_id):
+    """Make an individual prediction using a trained model."""
+    try:
+        # Retrieve the result from the database to get model information
+        result = Result.query.filter_by(session_id=session_id).first()
+        
+        if not result:
+            flash('Model not found')
+            return redirect(url_for('index'))
+        
+        # Get the form data
+        form_data = request.form
+        
+        # Create a DataFrame with a single row for prediction
+        input_data = pd.DataFrame({
+            'age': [float(form_data.get('age'))],
+            'sex': [float(form_data.get('sex'))],
+            'cp': [float(form_data.get('cp'))],
+            'trestbps': [float(form_data.get('trestbps'))],
+            'chol': [float(form_data.get('chol'))],
+            'fbs': [float(form_data.get('fbs'))],
+            'restecg': [float(form_data.get('restecg'))],
+            'thalach': [float(form_data.get('thalach'))],
+            'exang': [float(form_data.get('exang'))],
+            'oldpeak': [float(form_data.get('oldpeak'))],
+            'slope': [float(form_data.get('slope'))],
+            'ca': [float(form_data.get('ca'))],
+            'thal': [float(form_data.get('thal'))]
+        })
+        
+        # Handle different model types
+        model_name = result.model_name
+        model_type = result.model_type
+        
+        # For demonstration, we'll use a simplified approach
+        # Get the original dataset to fit the model (in production, would consider storing the model)
+        try:
+            # Use the heart.csv (or any previously uploaded file that worked with this model)
+            # In a real scenario, we would save the actual model object
+            sample_path = 'attached_assets/heart.csv'
+            df = pd.read_csv(sample_path)
+            X = df.drop('target', axis=1)
+            y = df['target']
+            
+            # Train the model
+            train_func = MODEL_FUNCTIONS[model_name]
+            model, _, _, _, _ = train_func(X, y)
+            
+            # Make the prediction with the individual data
+            prediction = model.predict(input_data)[0]
+            
+            # Redirect to result page with the prediction
+            return redirect(url_for('show_result', session_id=session_id, individual_prediction=int(prediction)))
+            
+        except Exception as e:
+            logger.error(f"Error making individual prediction: {str(e)}")
+            flash(f'Error making individual prediction: {str(e)}')
+            return redirect(url_for('show_result', session_id=session_id))
+    
+    except Exception as e:
+        logger.error(f"Error processing individual prediction: {str(e)}")
+        flash(f'Error processing individual prediction: {str(e)}')
         return redirect(url_for('index'))
 
 @app.route('/plot/<session_id>/<plot_type>')

@@ -457,6 +457,49 @@ footer {
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
+/* Individual prediction styling */
+.prediction-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 60px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s infinite;
+}
+
+.prediction-circle i {
+    font-size: 3rem;
+}
+
+.prediction-circle.risk {
+    background-color: rgba(220, 53, 69, 0.2);
+    border: 4px solid var(--bs-danger);
+    color: var(--bs-danger);
+}
+
+.prediction-circle.healthy {
+    background-color: rgba(25, 135, 84, 0.2);
+    border: 4px solid var(--bs-success);
+    color: var(--bs-success);
+}
+
+#individual-prediction-form label {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+#individual-prediction-form .form-control,
+#individual-prediction-form .form-select {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+}
+
+#prediction-result {
+    animation: fadeIn 0.5s ease;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .wizard-step-description {
@@ -488,6 +531,16 @@ footer {
     
     .file-upload-container {
         padding: 1rem;
+    }
+    
+    .prediction-circle {
+        width: 90px;
+        height: 90px;
+        border-radius: 45px;
+    }
+    
+    .prediction-circle i {
+        font-size: 2.5rem;
     }
 }
 
