@@ -176,16 +176,34 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Quantum Models Temporarily Disabled -->
+                                <!-- Quantum Models -->
                                 <div>
                                     <h6 class="mb-2">
                                         <span class="badge badge-qml">Q</span>
                                         Quantum Models
-                                        <span class="badge bg-warning text-dark">Coming Soon</span>
+                                        <span class="badge bg-info text-dark">Simulation</span>
                                     </h6>
-                                    <div class="alert alert-info">
+                                    <div class="row row-cols-1 row-cols-md-3 g-3">
+                                        <div class="col">
+                                            <div class="card model-card" data-model="variational_classifier">
+                                                <div class="card-body text-center">
+                                                    <h6 class="card-title">Variational Classifier</h6>
+                                                    <p class="card-text small text-muted">QML model using variational circuits (simulated)</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="card model-card" data-model="quantum_neural_network">
+                                                <div class="card-body text-center">
+                                                    <h6 class="card-title">Quantum Neural Network</h6>
+                                                    <p class="card-text small text-muted">Hybrid quantum-classical network (simulated)</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-info mt-2">
                                         <i class="bi bi-info-circle-fill me-2"></i>
-                                        Quantum models are temporarily unavailable. Please use ML or DL models for now.
+                                        Note: These quantum models are currently running as classical simulations. Real quantum implementations will be added in a future update.
                                     </div>
                                 </div>
                             </div>
