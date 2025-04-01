@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -23,10 +24,14 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="bi bi-house-door-fill me-1"></i> Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('history') }}">History</a>
+                        <a class="nav-link" href="{{ url_for('history') }}">
+                            <i class="bi bi-clock-history me-1"></i> History
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -36,15 +41,20 @@
     <!-- Main Content -->
     <div class="container main-container">
         <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-lg-8 mx-auto text-center">
-                <h1 class="mb-3">Prediction Results</h1>
+        <div class="row mb-4 animate__animated animate__fadeIn">
+            <div class="col-lg-10 mx-auto text-center">
+                <h1 class="display-4 mb-3">Prediction Results</h1>
                 <p class="lead">
-                    Results from analyzing your heart disease data
+                    Analysis complete for your heart disease prediction
                 </p>
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle-fill me-2"></i>
-                    Analysis complete! Here are your prediction results.
+                <div class="alert alert-success d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-check-circle-fill" style="font-size: 2rem;"></i>
+                    </div>
+                    <div>
+                        <h5 class="alert-heading mb-1">Analysis Successful!</h5>
+                        <p class="mb-0">Your heart disease dataset has been analyzed using the selected model. Review the detailed metrics and visualizations below.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -52,75 +62,136 @@
         <!-- Results Section -->
         <div class="row">
             <div class="col-lg-10 mx-auto">
-                <div class="card shadow mb-4">
+                <!-- Model Summary Card -->
+                <div class="card shadow mb-4 animate__animated animate__fadeInUp">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-graph-up me-2"></i>
-                            Model Performance Metrics
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            Model Summary
                         </h5>
                     </div>
                     <div class="card-body">
-                        <!-- Model Info -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center mb-2">
-                                    <h6 class="mb-0 me-2">Model Type:</h6>
-                                    <span class="badge 
-                                        {% if result.model_type == 'ML' %}badge-ml
-                                        {% elif result.model_type == 'DL' %}badge-dl
-                                        {% elif result.model_type == 'QML' %}badge-qml
-                                        {% elif result.model_type == 'QNN' %}badge-qnn{% endif %}">
-                                        {{ result.model_type }}
-                                    </span>
-                                </div>
-                                <h6>Model Name: <span class="text-muted">{{ result.model_name }}</span></h6>
+                        <div class="row align-items-center">
+                            <div class="col-md-2 text-center mb-3 mb-md-0">
+                                {% if result.model_type == 'ML' %}
+                                    <i class="bi bi-diagram-3 text-primary" style="font-size: 3rem;"></i>
+                                {% elif result.model_type == 'DL' %}
+                                    <i class="bi bi-cpu-fill text-success" style="font-size: 3rem;"></i>
+                                {% elif result.model_type == 'QML' or result.model_type == 'QNN' %}
+                                    <i class="bi bi-atom text-info" style="font-size: 3rem;"></i>
+                                {% endif %}
                             </div>
-                            <div class="col-md-6">
-                                <h6>File: <span class="text-muted">{{ result.filename }}</span></h6>
-                                <h6>Date: <span class="text-muted">{{ result.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span></h6>
+                            <div class="col-md-10">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h6 class="mb-0 me-2">Model Type:</h6>
+                                            <span class="badge 
+                                                {% if result.model_type == 'ML' %}badge-ml
+                                                {% elif result.model_type == 'DL' %}badge-dl
+                                                {% elif result.model_type == 'QML' %}badge-qml
+                                                {% elif result.model_type == 'QNN' %}badge-qnn{% endif %}">
+                                                {{ result.model_type }}
+                                            </span>
+                                        </div>
+                                        <h6>Model Name: <span class="text-light">{{ result.model_name }}</span></h6>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Dataset: <span class="text-light">{{ result.filename }}</span></h6>
+                                        <h6>Analysis Date: <span class="text-light">{{ result.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span></h6>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="alert alert-light mb-0">
+                                        <div class="d-flex">
+                                            <div class="me-3">
+                                                <i class="bi bi-lightbulb-fill text-warning"></i>
+                                            </div>
+                                            <div>
+                                                <strong>Model Insight:</strong>
+                                                {% if result.model_type == 'ML' %}
+                                                    This classic machine learning model uses statistical patterns to identify heart disease risk factors.
+                                                {% elif result.model_type == 'DL' %}
+                                                    This neural network model learns complex patterns in the heart data that might not be obvious to traditional methods.
+                                                {% elif result.model_type == 'QML' %}
+                                                    This quantum-inspired algorithm simulates how quantum computing could analyze heart health data.
+                                                {% elif result.model_type == 'QNN' %}
+                                                    This hybrid classical-quantum model simulates a combination of neural networks with quantum computing principles.
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Metrics -->
-                        <div class="row">
+                <!-- Performance Metrics Card -->
+                <div class="card shadow mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up me-2"></i>
+                            Performance Metrics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
                             <div class="col-md-3">
-                                <div class="card metric-card">
+                                <div class="card metric-card h-100">
                                     <div class="mb-3" style="height: 150px;">
                                         <canvas id="accuracy-chart" data-value="{{ result.accuracy }}"></canvas>
                                     </div>
                                     <h5>Accuracy</h5>
                                     <div class="metric-value">{{ "%.2f"|format(result.accuracy * 100) }}%</div>
-                                    <div class="text-muted small">Correct predictions ratio</div>
+                                    <div class="text-muted small">Overall prediction correctness</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card metric-card">
+                                <div class="card metric-card h-100">
                                     <div class="mb-3" style="height: 150px;">
                                         <canvas id="precision-chart" data-value="{{ result.precision }}"></canvas>
                                     </div>
                                     <h5>Precision</h5>
                                     <div class="metric-value">{{ "%.2f"|format(result.precision * 100) }}%</div>
-                                    <div class="text-muted small">True positives ratio</div>
+                                    <div class="text-muted small">Positive prediction accuracy</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card metric-card">
+                                <div class="card metric-card h-100">
                                     <div class="mb-3" style="height: 150px;">
                                         <canvas id="recall-chart" data-value="{{ result.recall }}"></canvas>
                                     </div>
                                     <h5>Recall</h5>
                                     <div class="metric-value">{{ "%.2f"|format(result.recall * 100) }}%</div>
-                                    <div class="text-muted small">Sensitivity measure</div>
+                                    <div class="text-muted small">True positive detection rate</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <div class="card metric-card">
+                                <div class="card metric-card h-100">
                                     <div class="mb-3" style="height: 150px;">
                                         <canvas id="f1-chart" data-value="{{ result.f1_score }}"></canvas>
                                     </div>
                                     <h5>F1 Score</h5>
                                     <div class="metric-value">{{ "%.2f"|format(result.f1_score * 100) }}%</div>
-                                    <div class="text-muted small">Harmonic mean of precision & recall</div>
+                                    <div class="text-muted small">Precision-recall balance</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-light mt-4">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="bi bi-info-circle-fill text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6>Understanding these metrics:</h6>
+                                    <ul class="mb-0 small">
+                                        <li><strong>Accuracy:</strong> The percentage of total predictions that were correct</li>
+                                        <li><strong>Precision:</strong> Of all predicted heart disease cases, how many actually had the disease</li>
+                                        <li><strong>Recall:</strong> Of all actual heart disease cases, how many were correctly identified</li>
+                                        <li><strong>F1 Score:</strong> The harmonic mean of precision and recall, balancing both metrics</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
@@ -128,7 +199,7 @@
                 </div>
 
                 <!-- Visualizations -->
-                <div class="row">
+                <div class="row animate__animated animate__fadeInUp animate__delay-2s">
                     <div class="col-md-6">
                         <div class="card shadow mb-4">
                             <div class="card-header bg-info text-white">
@@ -137,10 +208,16 @@
                                     Confusion Matrix
                                 </h5>
                             </div>
-                            <div class="card-body text-center">
-                                <img src="data:image/png;base64,{{ result.confusion_matrix_img }}" class="img-fluid" alt="Confusion Matrix">
-                                <div class="mt-2 text-muted">
-                                    Shows true vs. predicted classifications
+                            <div class="card-body">
+                                <div class="text-center">
+                                    <img src="data:image/png;base64,{{ result.confusion_matrix_img }}" class="img-fluid rounded" alt="Confusion Matrix">
+                                </div>
+                                <div class="mt-3">
+                                    <h6>What is this?</h6>
+                                    <p class="mb-0 small text-muted">
+                                        This matrix shows the counts of true positives (correctly predicted disease), true negatives (correctly predicted healthy), 
+                                        false positives (incorrectly predicted disease), and false negatives (incorrectly predicted healthy).
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -153,10 +230,16 @@
                                     ROC Curve
                                 </h5>
                             </div>
-                            <div class="card-body text-center">
-                                <img src="data:image/png;base64,{{ result.roc_curve_img }}" class="img-fluid" alt="ROC Curve">
-                                <div class="mt-2 text-muted">
-                                    Shows model performance across thresholds
+                            <div class="card-body">
+                                <div class="text-center">
+                                    <img src="data:image/png;base64,{{ result.roc_curve_img }}" class="img-fluid rounded" alt="ROC Curve">
+                                </div>
+                                <div class="mt-3">
+                                    <h6>What is this?</h6>
+                                    <p class="mb-0 small text-muted">
+                                        This curve illustrates the trade-off between sensitivity (true positive rate) and specificity (false positive rate) 
+                                        at various threshold settings. The area under the curve (AUC) measures the model's ability to distinguish between classes.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -164,20 +247,61 @@
                 </div>
 
                 <!-- Actions Section -->
-                <div class="row">
-                    <div class="col-md-12 text-center">
-                        <a href="{{ url_for('index') }}" class="btn btn-secondary me-2">
-                            <i class="bi bi-arrow-left me-1"></i>
-                            New Prediction
-                        </a>
-                        <button id="export-button" class="btn btn-success me-2" data-session-id="{{ result.session_id }}">
-                            <i class="bi bi-download me-1"></i>
-                            Export Results
-                        </button>
-                        <a href="{{ url_for('history') }}" class="btn btn-primary">
-                            <i class="bi bi-clock-history me-1"></i>
-                            View History
-                        </a>
+                <div class="card shadow mb-4 animate__animated animate__fadeInUp animate__delay-3s">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-gear-fill me-2"></i>
+                            Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <div class="card h-100 bg-light text-dark">
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <i class="bi bi-arrow-repeat text-primary" style="font-size: 2rem;"></i>
+                                        </div>
+                                        <h5>Try Another Model</h5>
+                                        <p class="small">Compare results across different prediction models</p>
+                                        <a href="{{ url_for('index') }}" class="btn btn-outline-primary mt-2">
+                                            <i class="bi bi-arrow-left me-1"></i>
+                                            New Prediction
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <div class="card h-100 bg-light text-dark">
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <i class="bi bi-download text-success" style="font-size: 2rem;"></i>
+                                        </div>
+                                        <h5>Export Results</h5>
+                                        <p class="small">Download prediction results as CSV file</p>
+                                        <button id="export-button" class="btn btn-outline-success mt-2" data-session-id="{{ result.session_id }}">
+                                            <i class="bi bi-file-earmark-spreadsheet me-1"></i>
+                                            Export Data
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 bg-light text-dark">
+                                    <div class="card-body text-center">
+                                        <div class="mb-3">
+                                            <i class="bi bi-clock-history text-info" style="font-size: 2rem;"></i>
+                                        </div>
+                                        <h5>View History</h5>
+                                        <p class="small">See all previous prediction results</p>
+                                        <a href="{{ url_for('history') }}" class="btn btn-outline-info mt-2">
+                                            <i class="bi bi-list-ul me-1"></i>
+                                            Prediction History
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -188,13 +312,23 @@
     <footer class="bg-dark text-white py-4">
         <div class="container">
             <div class="row">
-                <div class="col-md-12 text-center">
-                    <p>
-                        <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
-                        Heart Disease Prediction System using ML, DL, and Quantum Models
+                <div class="col-md-6 text-center text-md-start">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+                        <i class="bi bi-heart-pulse-fill text-danger me-2" style="font-size: 2rem;"></i>
+                        <div>
+                            <h5 class="mb-0">Heart Disease Prediction System</h5>
+                            <p class="small text-muted mb-0">ML, DL, and Quantum Models</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                    <p class="mb-0">
+                        <i class="bi bi-clipboard-data me-2"></i>
+                        Advanced medical data analysis platform
                     </p>
-                    <p class="small text-muted">
-                        Designed for medical data analysis with multiple prediction models
+                    <p class="small text-muted mb-0">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        Updated: April 2025
                     </p>
                 </div>
             </div>
