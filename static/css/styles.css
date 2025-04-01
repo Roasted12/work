@@ -10,6 +10,8 @@
 .card {
     margin-bottom: 1.5rem;
     transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
 .card:hover {
@@ -17,29 +19,232 @@
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Model selection cards */
+.card-header {
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+}
+
+/* Wizard steps styling */
+.wizard-container {
+    position: relative;
+}
+
+.wizard-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.wizard-step {
+    flex: 1;
+    text-align: center;
+    padding: 15px 5px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.wizard-step-number {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 45px;
+    height: 45px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    background-color: var(--bs-dark);
+    border: 2px solid var(--bs-border-color);
+    color: var(--bs-light);
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.wizard-step.active .wizard-step-number {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.5);
+}
+
+.wizard-step.completed .wizard-step-number {
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
+}
+
+.wizard-step-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.wizard-step-description {
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+}
+
+.wizard-progress-bar {
+    position: absolute;
+    top: 38px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--bs-border-color);
+    z-index: 1;
+}
+
+.wizard-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: var(--bs-primary);
+    transition: width 0.3s ease;
+}
+
+.wizard-content {
+    position: relative;
+    overflow: hidden;
+}
+
+.wizard-pane {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.wizard-pane.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.wizard-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+/* Enhanced Model selection cards */
 .model-card {
     cursor: pointer;
     height: 100%;
+    position: relative;
+    border: 2px solid transparent;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.model-card:hover {
+    border-color: var(--bs-primary);
 }
 
 .model-card.selected {
     border: 3px solid var(--bs-primary);
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
 }
 
-/* Loading animation */
+.model-card.selected::before {
+    content: '✓';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    background-color: var(--bs-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    transform: scale(1);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(0.95); }
+}
+
+/* Model type badges with better visibility */
+.model-type-badge {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 50%;
+    margin-right: 10px;
+    font-weight: bold;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* File upload styling */
+.file-upload-container {
+    border: 2px dashed var(--bs-border-color);
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.05);
+    margin-bottom: 1.5rem;
+}
+
+.file-upload-container:hover, .file-upload-container.dragover {
+    border-color: var(--bs-primary);
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.file-upload-icon {
+    font-size: 3rem;
+    color: var(--bs-secondary);
+    margin-bottom: 1rem;
+}
+
+.file-upload-text {
+    margin-bottom: 1rem;
+}
+
+.file-details {
+    display: none;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.file-details.show {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+/* Loading animation with improved styling */
 .loading-container {
     display: none;
     text-align: center;
     margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .loading-spinner {
-    width: 3rem;
-    height: 3rem;
+    width: 4rem;
+    height: 4rem;
+    border-width: 0.25rem;
 }
 
-/* Results visualization */
+.loading-text {
+    margin-top: 1.5rem;
+    font-weight: 500;
+}
+
+/* Results visualization with enhanced styling */
 .results-container {
     margin-top: 2rem;
 }
@@ -47,38 +252,47 @@
 .metric-card {
     text-align: center;
     padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.metric-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--bs-primary);
 }
 
 .metric-value {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: bold;
+    margin: 0.5rem 0;
+    background: linear-gradient(45deg, var(--bs-primary), var(--bs-info));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .plot-container {
     margin: 1rem 0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* History table */
+/* History table with improved styling */
 .history-table th, .history-table td {
     vertical-align: middle;
 }
 
-/* Export button */
-.export-btn {
-    margin-top: 1rem;
+.history-table tr {
+    transition: all 0.2s ease;
 }
 
-/* Footer styling */
-footer {
-    margin-top: 3rem;
-    padding: 1.5rem 0;
-    text-align: center;
-}
-
-/* Responsive image styling */
-.img-fluid {
-    max-width: 100%;
-    height: auto;
+.history-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* Custom badge colors for model types */
@@ -97,4 +311,97 @@ footer {
 .badge-qnn {
     background-color: var(--bs-warning);
     color: var(--bs-dark);
+}
+
+/* Export button with improved styling */
+.btn-export {
+    background: linear-gradient(45deg, var(--bs-success), var(--bs-info));
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-export:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Footer styling */
+footer {
+    margin-top: 3rem;
+    padding: 2rem 0;
+    text-align: center;
+    background: linear-gradient(180deg, var(--bs-dark) 0%, #111 100%);
+}
+
+/* Responsive image styling */
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+/* Enhanced animations for better UX */
+.animate-in {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Pulse animation for attention */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Customized form controls */
+.form-control {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border-width: 2px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn {
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--bs-primary), #4d8ffd);
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, #0d5ede, #4d8ffd);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Navigation glow effect */
+.navbar-brand, .nav-link {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.navbar-brand:hover, .nav-link:hover {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }

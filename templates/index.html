@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -22,10 +23,14 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('index') }}">Home</a>
+                        <a class="nav-link active" href="{{ url_for('index') }}">
+                            <i class="bi bi-house-door-fill me-1"></i> Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('history') }}">History</a>
+                        <a class="nav-link" href="{{ url_for('history') }}">
+                            <i class="bi bi-clock-history me-1"></i> History
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -35,187 +40,495 @@
     <!-- Main Content -->
     <div class="container main-container">
         <!-- Intro Section -->
-        <div class="row mb-4">
-            <div class="col-lg-8 mx-auto text-center">
+        <div class="row mb-4 animate__animated animate__fadeIn">
+            <div class="col-lg-10 mx-auto text-center">
                 <h1 class="display-4 mb-3">Heart Disease Prediction System</h1>
                 <p class="lead">
-                    Upload your data and choose a machine learning model to predict heart disease risk.
+                    Analyze your heart health data with advanced prediction models including Machine Learning, 
+                    Deep Learning, and Quantum Computing approaches.
                 </p>
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle-fill me-2"></i>
-                    This system uses a variety of models including Machine Learning, Deep Learning, and Quantum Computing approaches.
+                    Follow the guided steps below to upload your data, select a model, and review configuration settings before running the prediction.
                 </div>
             </div>
         </div>
 
         <!-- Flash Messages -->
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        <div id="notification-container">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
 
-        <!-- Upload Form Section -->
+        <!-- Wizard Form Section -->
         <div class="row">
             <div class="col-lg-10 mx-auto">
-                <div class="card shadow">
+                <div class="card shadow mb-4 animate__animated animate__fadeInUp">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-cloud-upload-fill me-2"></i>
-                            Upload CSV File & Select Model
+                            <i class="bi bi-magic me-2"></i>
+                            Heart Disease Prediction Wizard
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form id="upload-form" action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data">
-                            <!-- File Upload Section -->
-                            <div class="mb-4">
-                                <h5>Step 1: Upload Heart Disease CSV File</h5>
-                                <p class="text-muted">Upload a CSV file with the following columns: age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, target</p>
+                        <!-- Wizard Progress -->
+                        <div class="wizard-container">
+                            <div class="wizard-steps">
+                                <div class="wizard-step active" data-step="0">
+                                    <div class="wizard-step-number">1</div>
+                                    <div class="wizard-step-title">Upload Data</div>
+                                    <div class="wizard-step-description">Upload heart data CSV</div>
+                                </div>
+                                <div class="wizard-step" data-step="1">
+                                    <div class="wizard-step-number">2</div>
+                                    <div class="wizard-step-title">Select Model</div>
+                                    <div class="wizard-step-description">Choose prediction method</div>
+                                </div>
+                                <div class="wizard-step" data-step="2">
+                                    <div class="wizard-step-number">3</div>
+                                    <div class="wizard-step-title">Review</div>
+                                    <div class="wizard-step-description">Verify and submit</div>
+                                </div>
                                 
-                                <div class="input-group mb-3">
-                                    <input type="file" class="form-control" id="file-input" name="file" accept=".csv">
-                                    <label class="input-group-text" for="file-input">
-                                        <i class="bi bi-file-earmark-text me-1"></i>
-                                        Browse
-                                    </label>
+                                <div class="wizard-progress-bar">
+                                    <div class="wizard-progress" style="width: 0%"></div>
                                 </div>
                             </div>
                             
-                            <!-- Model Selection Section -->
-                            <div class="mb-4">
-                                <h5>Step 2: Select Prediction Model</h5>
-                                <input type="hidden" id="model-type" name="model_type" value="">
-                                
-                                <!-- ML Models -->
-                                <div class="mb-3">
-                                    <h6 class="mb-2">
-                                        <span class="badge badge-ml">ML</span>
-                                        Machine Learning Models
-                                    </h6>
-                                    <div class="row row-cols-1 row-cols-md-3 g-3">
-                                        <div class="col">
-                                            <div class="card model-card" data-model="logistic_regression">
-                                                <div class="card-body text-center">
-                                                    <h6 class="card-title">Logistic Regression</h6>
-                                                    <p class="card-text small text-muted">A linear model for binary classification</p>
+                            <form id="upload-form" action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data">
+                                <div class="wizard-content">
+                                    <!-- Step 1: Upload Data -->
+                                    <div class="wizard-pane active" id="step-upload">
+                                        <h4 class="mb-3">
+                                            <i class="bi bi-cloud-upload me-2"></i>
+                                            Upload Heart Data
+                                        </h4>
+                                        
+                                        <p>Upload a CSV file containing your heart disease data for analysis. The file should include health metrics and a target column indicating disease presence.</p>
+                                        
+                                        <div class="file-upload-container">
+                                            <div class="file-upload-icon">
+                                                <i class="bi bi-file-earmark-medical"></i>
+                                            </div>
+                                            <div class="file-upload-text">
+                                                <h5>Drop your CSV file here</h5>
+                                                <p class="text-muted">or</p>
+                                            </div>
+                                            <input type="file" class="form-control d-none" id="file-input" name="file" accept=".csv">
+                                            <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('file-input').click()">
+                                                <i class="bi bi-folder2-open me-2"></i>
+                                                Browse Files
+                                            </button>
+                                            <p class="mt-3 mb-0 text-muted small">
+                                                Required columns: age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal, target
+                                            </p>
+                                        </div>
+                                        
+                                        <div class="file-details mt-4">
+                                            <div class="row align-items-center">
+                                                <div class="col-auto">
+                                                    <i class="bi bi-file-earmark-spreadsheet text-primary" style="font-size: 2rem;"></i>
+                                                </div>
+                                                <div class="col">
+                                                    <h6 class="mb-1" id="file-name-display">filename.csv</h6>
+                                                    <p class="mb-0 text-muted small" id="file-size-display">0 KB</p>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="document.getElementById('file-input').value = ''; 
+                                                        document.querySelector('.file-details').classList.remove('show');">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col">
-                                            <div class="card model-card" data-model="decision_tree">
-                                                <div class="card-body text-center">
-                                                    <h6 class="card-title">Decision Tree</h6>
-                                                    <p class="card-text small text-muted">Tree-based model with if-then rules</p>
+                                        
+                                        <div class="alert alert-light mt-4">
+                                            <div class="d-flex">
+                                                <div class="me-3">
+                                                    <i class="bi bi-info-circle-fill text-primary" style="font-size: 1.5rem;"></i>
+                                                </div>
+                                                <div>
+                                                    <h6>Sample Dataset</h6>
+                                                    <p class="mb-0">
+                                                        Example file format is shown below. Your data should follow this structure for accurate prediction.
+                                                    </p>
+                                                    <table class="table table-sm table-bordered mt-3 mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>age</th>
+                                                                <th>sex</th>
+                                                                <th>cp</th>
+                                                                <th>...</th>
+                                                                <th>target</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>63</td>
+                                                                <td>1</td>
+                                                                <td>0</td>
+                                                                <td>...</td>
+                                                                <td>1</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>56</td>
+                                                                <td>0</td>
+                                                                <td>1</td>
+                                                                <td>...</td>
+                                                                <td>0</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col">
-                                            <div class="card model-card" data-model="random_forest">
-                                                <div class="card-body text-center">
-                                                    <h6 class="card-title">Random Forest</h6>
-                                                    <p class="card-text small text-muted">Ensemble of decision trees</p>
+                                    </div>
+                                    
+                                    <!-- Step 2: Select Model -->
+                                    <div class="wizard-pane" id="step-model">
+                                        <h4 class="mb-3">
+                                            <i class="bi bi-diagram-3 me-2"></i>
+                                            Select Prediction Model
+                                        </h4>
+                                        
+                                        <p>Choose a model to analyze your data. Different models have unique strengths for various data patterns.</p>
+                                        
+                                        <input type="hidden" id="model-type" name="model_type" value="">
+                                        
+                                        <!-- ML Models -->
+                                        <div class="model-type-container mb-4" data-model-type="ml">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="model-type-badge badge-ml">ML</div>
+                                                <h5 class="mb-0">Machine Learning Models</h5>
+                                            </div>
+                                            <div class="row row-cols-1 row-cols-md-3 g-3">
+                                                <div class="col animate__animated animate__fadeInUp animate__delay-1s">
+                                                    <div class="card model-card h-100" data-model="logistic_regression">
+                                                        <div class="card-body text-center">
+                                                            <div class="mb-3">
+                                                                <i class="bi bi-graph-up text-primary" style="font-size: 2rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title">Logistic Regression</h6>
+                                                            <p class="card-text small text-muted">Linear model for binary classification with high interpretability</p>
+                                                        </div>
+                                                        <div class="card-footer bg-transparent border-0">
+                                                            <div class="d-flex justify-content-between text-muted small">
+                                                                <span><i class="bi bi-lightning-charge-fill me-1"></i>Fast</span>
+                                                                <span><i class="bi bi-star-half me-1"></i>Medium accuracy</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col animate__animated animate__fadeInUp animate__delay-2s">
+                                                    <div class="card model-card h-100" data-model="decision_tree">
+                                                        <div class="card-body text-center">
+                                                            <div class="mb-3">
+                                                                <i class="bi bi-diagram-2 text-success" style="font-size: 2rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title">Decision Tree</h6>
+                                                            <p class="card-text small text-muted">Tree-based model with intuitive if-then-else decision rules</p>
+                                                        </div>
+                                                        <div class="card-footer bg-transparent border-0">
+                                                            <div class="d-flex justify-content-between text-muted small">
+                                                                <span><i class="bi bi-lightning-charge-fill me-1"></i>Fast</span>
+                                                                <span><i class="bi bi-eye-fill me-1"></i>Highly visual</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col animate__animated animate__fadeInUp animate__delay-3s">
+                                                    <div class="card model-card h-100" data-model="random_forest">
+                                                        <div class="card-body text-center">
+                                                            <div class="mb-3">
+                                                                <i class="bi bi-layout-wtf text-success" style="font-size: 2rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title">Random Forest</h6>
+                                                            <p class="card-text small text-muted">Ensemble of decision trees with improved accuracy</p>
+                                                        </div>
+                                                        <div class="card-footer bg-transparent border-0">
+                                                            <div class="d-flex justify-content-between text-muted small">
+                                                                <span><i class="bi bi-bullseye me-1"></i>High accuracy</span>
+                                                                <span><i class="bi bi-shield-check me-1"></i>Robust</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col animate__animated animate__fadeInUp animate__delay-4s">
+                                                    <div class="card model-card h-100" data-model="svm">
+                                                        <div class="card-body text-center">
+                                                            <div class="mb-3">
+                                                                <i class="bi bi-layers text-warning" style="font-size: 2rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title">Support Vector Machine</h6>
+                                                            <p class="card-text small text-muted">Finds optimal hyperplane for class separation</p>
+                                                        </div>
+                                                        <div class="card-footer bg-transparent border-0">
+                                                            <div class="d-flex justify-content-between text-muted small">
+                                                                <span><i class="bi bi-bullseye me-1"></i>High accuracy</span>
+                                                                <span><i class="bi bi-arrows-fullscreen me-1"></i>Complex data</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col animate__animated animate__fadeInUp animate__delay-5s">
+                                                    <div class="card model-card h-100" data-model="knn">
+                                                        <div class="card-body text-center">
+                                                            <div class="mb-3">
+                                                                <i class="bi bi-microsoft-teams text-info" style="font-size: 2rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title">K-Nearest Neighbors</h6>
+                                                            <p class="card-text small text-muted">Classification based on closest training examples</p>
+                                                        </div>
+                                                        <div class="card-footer bg-transparent border-0">
+                                                            <div class="d-flex justify-content-between text-muted small">
+                                                                <span><i class="bi bi-lightning-charge-fill me-1"></i>Simple</span>
+                                                                <span><i class="bi bi-rulers me-1"></i>Distance-based</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col">
-                                            <div class="card model-card" data-model="svm">
-                                                <div class="card-body text-center">
-                                                    <h6 class="card-title">Support Vector Machine</h6>
-                                                    <p class="card-text small text-muted">Finds optimal hyperplane</p>
+                                        
+                                        <!-- DL Models -->
+                                        <div class="model-type-container mb-4" data-model-type="dl">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="model-type-badge badge-dl">DL</div>
+                                                <h5 class="mb-0">Deep Learning Models</h5>
+                                            </div>
+                                            <div class="row row-cols-1 row-cols-md-3 g-3">
+                                                <div class="col animate__animated animate__fadeInUp">
+                                                    <div class="card model-card h-100" data-model="dense_1layer">
+                                                        <div class="card-body text-center">
+                                                            <div class="mb-3">
+                                                                <i class="bi bi-cpu text-success" style="font-size: 2rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title">1-Layer Neural Network</h6>
+                                                            <p class="card-text small text-muted">Simple neural network with single hidden layer</p>
+                                                        </div>
+                                                        <div class="card-footer bg-transparent border-0">
+                                                            <div class="d-flex justify-content-between text-muted small">
+                                                                <span><i class="bi bi-lightning-charge-fill me-1"></i>Fast</span>
+                                                                <span><i class="bi bi-bar-chart-line me-1"></i>Basic patterns</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col animate__animated animate__fadeInUp animate__delay-1s">
+                                                    <div class="card model-card h-100" data-model="dense_2layer">
+                                                        <div class="card-body text-center">
+                                                            <div class="mb-3">
+                                                                <i class="bi bi-cpu-fill text-success" style="font-size: 2rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title">2-Layer Neural Network</h6>
+                                                            <p class="card-text small text-muted">Medium complexity neural network with two hidden layers</p>
+                                                        </div>
+                                                        <div class="card-footer bg-transparent border-0">
+                                                            <div class="d-flex justify-content-between text-muted small">
+                                                                <span><i class="bi bi-bar-chart-line me-1"></i>Better accuracy</span>
+                                                                <span><i class="bi bi-diagram-3 me-1"></i>More complex</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col animate__animated animate__fadeInUp animate__delay-2s">
+                                                    <div class="card model-card h-100" data-model="dense_3layer">
+                                                        <div class="card-body text-center">
+                                                            <div class="mb-3">
+                                                                <i class="bi bi-braces-asterisk text-success" style="font-size: 2rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title">3-Layer Neural Network</h6>
+                                                            <p class="card-text small text-muted">Deep neural network with three hidden layers</p>
+                                                        </div>
+                                                        <div class="card-footer bg-transparent border-0">
+                                                            <div class="d-flex justify-content-between text-muted small">
+                                                                <span><i class="bi bi-bar-chart-line-fill me-1"></i>Highest accuracy</span>
+                                                                <span><i class="bi bi-stars me-1"></i>Complex patterns</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col">
-                                            <div class="card model-card" data-model="knn">
-                                                <div class="card-body text-center">
-                                                    <h6 class="card-title">K-Nearest Neighbors</h6>
-                                                    <p class="card-text small text-muted">Classification based on proximity</p>
+                                        
+                                        <!-- Quantum Models -->
+                                        <div class="model-type-container" data-model-type="qml">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <div class="model-type-badge badge-qml">Q</div>
+                                                <h5 class="mb-0">Quantum Computing Models
+                                                <span class="badge bg-info text-dark ms-2">Simulation</span></h5>
+                                            </div>
+                                            <div class="row row-cols-1 row-cols-md-3 g-3">
+                                                <div class="col animate__animated animate__fadeInUp">
+                                                    <div class="card model-card h-100" data-model="variational_classifier">
+                                                        <div class="card-body text-center">
+                                                            <div class="mb-3">
+                                                                <i class="bi bi-tsunami text-info" style="font-size: 2rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title">Variational Classifier</h6>
+                                                            <p class="card-text small text-muted">QML model using variational quantum circuits (simulated)</p>
+                                                        </div>
+                                                        <div class="card-footer bg-transparent border-0">
+                                                            <div class="d-flex justify-content-between text-muted small">
+                                                                <span><i class="bi bi-atom me-1"></i>Quantum-inspired</span>
+                                                                <span><i class="bi bi-magic me-1"></i>Innovation</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col animate__animated animate__fadeInUp animate__delay-1s">
+                                                    <div class="card model-card h-100" data-model="quantum_neural_network">
+                                                        <div class="card-body text-center">
+                                                            <div class="mb-3">
+                                                                <i class="bi bi-globe text-info" style="font-size: 2rem;"></i>
+                                                            </div>
+                                                            <h6 class="card-title">Quantum Neural Network</h6>
+                                                            <p class="card-text small text-muted">Hybrid quantum-classical neural network (simulated)</p>
+                                                        </div>
+                                                        <div class="card-footer bg-transparent border-0">
+                                                            <div class="d-flex justify-content-between text-muted small">
+                                                                <span><i class="bi bi-cpu me-1"></i>Hybrid</span>
+                                                                <span><i class="bi bi-fast-forward-fill me-1"></i>Cutting-edge</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-info mt-3">
+                                                <i class="bi bi-info-circle-fill me-2"></i>
+                                                Note: These quantum models are currently running as classical simulations that demonstrate quantum-inspired algorithms. Real quantum implementations will be added in a future update.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Step 3: Review and Submit -->
+                                    <div class="wizard-pane" id="step-review">
+                                        <h4 class="mb-3">
+                                            <i class="bi bi-check2-circle me-2"></i>
+                                            Review and Submit
+                                        </h4>
+                                        
+                                        <p>Review your selections before starting the prediction process.</p>
+                                        
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-file-earmark-text me-2"></i>
+                                                    Data File
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">
+                                                        <i class="bi bi-file-earmark-spreadsheet text-primary" style="font-size: 2rem;"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 id="review-filename">Not selected</h6>
+                                                        <p class="text-muted mb-0 small" id="review-filesize"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-gear me-2"></i>
+                                                    Selected Model
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3" id="review-model-icon">
+                                                        <i class="bi bi-question-circle text-secondary" style="font-size: 2rem;"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 id="review-model-name">Not selected</h6>
+                                                        <p class="text-muted mb-0 small" id="review-model-type"></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="alert alert-warning">
+                                            <div class="d-flex">
+                                                <div class="me-3">
+                                                    <i class="bi bi-lightbulb-fill text-warning" style="font-size: 1.5rem;"></i>
+                                                </div>
+                                                <div>
+                                                    <h6>Prediction Process</h6>
+                                                    <p class="mb-0">
+                                                        The system will analyze your data using the selected model. This process may take several moments depending on data size and model complexity. 
+                                                        Once complete, you'll see detailed metrics and visualizations to help interpret the results.
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <!-- DL Models -->
-                                <div class="mb-3">
-                                    <h6 class="mb-2">
-                                        <span class="badge badge-dl">DL</span>
-                                        Deep Learning Models
-                                    </h6>
-                                    <div class="row row-cols-1 row-cols-md-3 g-3">
-                                        <div class="col">
-                                            <div class="card model-card" data-model="dense_1layer">
-                                                <div class="card-body text-center">
-                                                    <h6 class="card-title">1-Layer Network</h6>
-                                                    <p class="card-text small text-muted">Simple neural network with one hidden layer</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="card model-card" data-model="dense_2layer">
-                                                <div class="card-body text-center">
-                                                    <h6 class="card-title">2-Layer Network</h6>
-                                                    <p class="card-text small text-muted">Neural network with two hidden layers</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="card model-card" data-model="dense_3layer">
-                                                <div class="card-body text-center">
-                                                    <h6 class="card-title">3-Layer Network</h6>
-                                                    <p class="card-text small text-muted">Deep neural network with three hidden layers</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <!-- Wizard Navigation -->
+                                <div class="wizard-controls">
+                                    <button type="button" id="prev-step" class="btn btn-secondary" disabled>
+                                        <i class="bi bi-arrow-left me-2"></i>
+                                        Previous
+                                    </button>
+                                    <button type="button" id="next-step" class="btn btn-primary">
+                                        Next
+                                        <i class="bi bi-arrow-right ms-2"></i>
+                                    </button>
+                                    <button type="submit" id="submit-prediction" class="btn btn-primary btn-lg" style="display: none;">
+                                        <i class="bi bi-lightning-charge-fill me-2"></i>
+                                        Run Prediction
+                                    </button>
                                 </div>
-                                
-                                <!-- Quantum Models -->
-                                <div>
-                                    <h6 class="mb-2">
-                                        <span class="badge badge-qml">Q</span>
-                                        Quantum Models
-                                        <span class="badge bg-info text-dark">Simulation</span>
-                                    </h6>
-                                    <div class="row row-cols-1 row-cols-md-3 g-3">
-                                        <div class="col">
-                                            <div class="card model-card" data-model="variational_classifier">
-                                                <div class="card-body text-center">
-                                                    <h6 class="card-title">Variational Classifier</h6>
-                                                    <p class="card-text small text-muted">QML model using variational circuits (simulated)</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="card model-card" data-model="quantum_neural_network">
-                                                <div class="card-body text-center">
-                                                    <h6 class="card-title">Quantum Neural Network</h6>
-                                                    <p class="card-text small text-muted">Hybrid quantum-classical network (simulated)</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="alert alert-info mt-2">
-                                        <i class="bi bi-info-circle-fill me-2"></i>
-                                        Note: These quantum models are currently running as classical simulations. Real quantum implementations will be added in a future update.
-                                    </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- How It Works Section -->
+                <div class="card shadow mb-4 animate__animated animate__fadeInUp animate__delay-2s">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            How It Works
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-database-fill-up text-primary" style="font-size: 2.5rem;"></i>
                                 </div>
+                                <h5 class="text-center">1. Data Processing</h5>
+                                <p class="text-center">Your uploaded CSV data is preprocessed, normalized, and split into training and testing sets to ensure accurate model evaluation.</p>
                             </div>
-                            
-                            <!-- Submit Button -->
-                            <div class="text-center mt-4">
-                                <button type="submit" class="btn btn-primary btn-lg px-5">
-                                    <i class="bi bi-lightning-charge-fill me-2"></i>
-                                    Run Prediction
-                                </button>
+                            <div class="col-md-4">
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-cpu-fill text-success" style="font-size: 2.5rem;"></i>
+                                </div>
+                                <h5 class="text-center">2. Model Training</h5>
+                                <p class="text-center">The selected prediction model is trained on your data, learning patterns that differentiate between healthy and at-risk patients.</p>
                             </div>
-                        </form>
+                            <div class="col-md-4">
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-graph-up-arrow text-info" style="font-size: 2.5rem;"></i>
+                                </div>
+                                <h5 class="text-center">3. Results Analysis</h5>
+                                <p class="text-center">Comprehensive metrics and visualizations help you understand model performance and make informed decisions.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -226,7 +539,10 @@
             <div class="spinner-border loading-spinner text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <p class="mt-3">Processing your data... This may take a moment.</p>
+            <div class="loading-text">
+                <h5>Processing Your Data</h5>
+                <p class="mb-0">Training models and generating predictions... This may take a moment.</p>
+            </div>
         </div>
     </div>
 
@@ -234,13 +550,23 @@
     <footer class="bg-dark text-white py-4">
         <div class="container">
             <div class="row">
-                <div class="col-md-12 text-center">
-                    <p>
-                        <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
-                        Heart Disease Prediction System using ML, DL, and Quantum Models
+                <div class="col-md-6 text-center text-md-start">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+                        <i class="bi bi-heart-pulse-fill text-danger me-2" style="font-size: 2rem;"></i>
+                        <div>
+                            <h5 class="mb-0">Heart Disease Prediction System</h5>
+                            <p class="small text-muted mb-0">ML, DL, and Quantum Models</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                    <p class="mb-0">
+                        <i class="bi bi-clipboard-data me-2"></i>
+                        Advanced medical data analysis platform
                     </p>
-                    <p class="small text-muted">
-                        Designed for medical data analysis with multiple prediction models
+                    <p class="small text-muted mb-0">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        Updated: April 2025
                     </p>
                 </div>
             </div>
@@ -249,6 +575,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

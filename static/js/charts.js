@@ -1,157 +1,234 @@
-// Charts.js integration for the Heart Disease Prediction System
+// Charts.js - Visualization scripts for the Heart Disease Prediction System
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Function to create a doughnut chart for metrics
-    function createMetricChart(elementId, value, label) {
-        const element = document.getElementById(elementId);
+    // Initialize all chart elements on the page
+    initMetricCharts();
+    initComparisonChart();
+});
+
+// Initialize metric gauge charts
+function initMetricCharts() {
+    const metricCharts = document.querySelectorAll('[id$="-chart"]');
+    
+    if (!metricCharts.length || typeof Chart === 'undefined') return;
+    
+    metricCharts.forEach((canvas, index) => {
+        // Get value from data attribute
+        const value = parseFloat(canvas.dataset.value);
+        if (isNaN(value)) return;
         
-        if (!element) return;
+        // Set color and label based on chart ID
+        let color, label;
+        const id = canvas.id;
         
-        const ctx = element.getContext('2d');
+        if (id.includes('accuracy')) {
+            color = '#0d6efd'; // Blue
+            label = 'Accuracy';
+        } else if (id.includes('precision')) {
+            color = '#198754'; // Green
+            label = 'Precision';
+        } else if (id.includes('recall')) {
+            color = '#fd7e14'; // Orange
+            label = 'Recall';
+        } else if (id.includes('f1')) {
+            color = '#6f42c1'; // Purple
+            label = 'F1 Score';
+        } else {
+            color = '#6c757d'; // Secondary
+            label = 'Metric';
+        }
         
-        return new Chart(ctx, {
+        // Create gauge chart with animation
+        const chart = new Chart(canvas, {
             type: 'doughnut',
             data: {
-                labels: [label, 'Remainder'],
                 datasets: [{
-                    data: [value, 1 - value],
-                    backgroundColor: [
-                        '#007bff',  // Primary color for the metric
-                        '#e9ecef'   // Light gray for remainder
-                    ],
+                    data: [0, 1], // Start with 0, will animate to actual value
+                    backgroundColor: [color, 'rgba(200, 200, 200, 0.2)'],
                     borderWidth: 0
                 }]
             },
             options: {
+                cutout: '75%',
                 responsive: true,
                 maintainAspectRatio: true,
-                cutout: '70%',
+                circumference: 180,
+                rotation: -90,
                 plugins: {
+                    tooltip: {
+                        enabled: false
+                    },
                     legend: {
                         display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.label}: ${(context.raw * 100).toFixed(2)}%`;
-                            }
-                        }
                     }
                 },
                 animation: {
-                    animateRotate: true,
-                    animateScale: true
+                    duration: 1500,
+                    easing: 'easeOutCubic'
                 }
             }
         });
-    }
-    
-    // Create charts for metrics if they exist on the page
-    const metricIds = ['accuracy-chart', 'precision-chart', 'recall-chart', 'f1-chart'];
-    const metricLabels = ['Accuracy', 'Precision', 'Recall', 'F1 Score'];
-    
-    metricIds.forEach((id, index) => {
-        const element = document.getElementById(id);
-        if (element) {
-            const value = parseFloat(element.dataset.value);
-            if (!isNaN(value)) {
-                createMetricChart(id, value, metricLabels[index]);
-            }
-        }
+        
+        // Animate the chart after a delay based on index
+        setTimeout(() => {
+            chart.data.datasets[0].data = [value, 1 - value];
+            chart.update();
+        }, 300 * index);
+        
+        // Add center text if possible
+        addCenterText(canvas, `${(value * 100).toFixed(0)}%`, label);
     });
+}
+
+// Add text to the center of a doughnut chart
+function addCenterText(canvas, value, label) {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     
-    // Function to create comparison charts on the history page
-    function createComparisonChart() {
-        const element = document.getElementById('model-comparison-chart');
+    // This function will be called after the chart is rendered
+    const addText = () => {
+        // Get canvas dimensions
+        const width = canvas.width;
+        const height = canvas.height;
         
-        if (!element) return;
+        // Save the current state
+        ctx.save();
         
-        // Get data from the table
-        const table = document.getElementById('history-table');
-        if (!table) return;
+        // Clear the center area (not needed for a new chart but useful for updates)
+        ctx.clearRect(width * 0.2, height * 0.2, width * 0.6, height * 0.6);
         
-        const rows = table.getElementsByTagName('tr');
-        const models = {};
+        // Add value text
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillStyle = '#fff';
+        ctx.fillText(value, width / 2, height / 2);
         
-        // Skip header row
-        for (let i = 1; i < rows.length; i++) {
-            const cells = rows[i].getElementsByTagName('td');
-            if (cells.length >= 5) {
-                const modelType = cells[2].textContent.trim();
-                const accuracy = parseFloat(cells[3].textContent);
-                
-                if (!models[modelType]) {
-                    models[modelType] = {
-                        accuracies: [],
-                        count: 0
-                    };
-                }
-                
-                models[modelType].accuracies.push(accuracy);
-                models[modelType].count++;
-            }
-        }
-        
-        // Calculate average accuracy for each model type
-        const labels = [];
-        const data = [];
-        const backgroundColors = [
-            'rgba(0, 123, 255, 0.7)',    // Blue for ML
-            'rgba(40, 167, 69, 0.7)',    // Green for DL
-            'rgba(23, 162, 184, 0.7)',   // Cyan for QML
-            'rgba(255, 193, 7, 0.7)'     // Yellow for QNN
-        ];
-        
-        for (const [type, info] of Object.entries(models)) {
-            labels.push(type);
-            const avgAccuracy = info.accuracies.reduce((a, b) => a + b, 0) / info.count;
-            data.push(avgAccuracy);
-        }
-        
-        const ctx = element.getContext('2d');
-        
-        return new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Average Accuracy',
-                    data: data,
-                    backgroundColor: backgroundColors.slice(0, labels.length),
-                    borderColor: backgroundColors.slice(0, labels.length).map(color => color.replace('0.7', '1')),
+        // Restore the state
+        ctx.restore();
+    };
+    
+    // Add the text now and also set it to run after any animations
+    addText();
+    canvas.parentElement.addEventListener('chartjs-animation-complete', addText);
+}
+
+// Initialize model comparison chart if present
+function initComparisonChart() {
+    const comparisonChart = document.getElementById('comparison-chart');
+    
+    if (!comparisonChart || typeof Chart === 'undefined') return;
+    
+    // Get chart data from data attributes
+    const labels = JSON.parse(comparisonChart.dataset.labels || '[]');
+    const accuracyValues = JSON.parse(comparisonChart.dataset.accuracy || '[]');
+    const precisionValues = JSON.parse(comparisonChart.dataset.precision || '[]');
+    const recallValues = JSON.parse(comparisonChart.dataset.recall || '[]');
+    const f1Values = JSON.parse(comparisonChart.dataset.f1 || '[]');
+    
+    if (!labels.length) return;
+    
+    // Create the chart
+    new Chart(comparisonChart, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Accuracy',
+                    data: accuracyValues,
+                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
                     borderWidth: 1
-                }]
+                },
+                {
+                    label: 'Precision',
+                    data: precisionValues,
+                    backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Recall',
+                    data: recallValues,
+                    backgroundColor: 'rgba(253, 126, 20, 0.7)',
+                    borderColor: 'rgba(253, 126, 20, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'F1 Score',
+                    data: f1Values,
+                    backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                    borderColor: 'rgba(111, 66, 193, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1,
+                    ticks: {
+                        callback: function(value) {
+                            return (value * 100) + '%';
+                        }
+                    }
+                }
             },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 1,
-                        ticks: {
-                            callback: function(value) {
-                                return (value * 100).toFixed(0) + '%';
-                            }
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + (context.raw * 100).toFixed(2) + '%';
                         }
                     }
                 },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Accuracy: ${(context.raw * 100).toFixed(2)}%`;
-                            }
-                        }
-                    },
-                    legend: {
-                        display: false
-                    }
+                legend: {
+                    position: 'top',
                 }
+            },
+            animation: {
+                duration: 2000,
+                easing: 'easeOutQuart'
             }
-        });
-    }
+        }
+    });
+}
+
+// Create animated metric counter element
+function createMetricCounter(elementId, targetValue, prefix = '', suffix = '', duration = 1500) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
     
-    // Create comparison chart if we're on the history page
-    if (document.getElementById('model-comparison-chart')) {
-        createComparisonChart();
-    }
-});
+    // Format for display
+    const formattedTarget = typeof targetValue === 'number' 
+        ? targetValue.toFixed(2) 
+        : targetValue;
+    
+    // Set starting value
+    let startValue = 0;
+    let currentValue = startValue;
+    
+    // Calculate step size based on duration and refresh rate
+    const fps = 60;
+    const refreshInterval = 1000 / fps;
+    const steps = Math.ceil(duration / refreshInterval);
+    const increment = targetValue / steps;
+    
+    // Start the animation
+    const counter = setInterval(() => {
+        currentValue += increment;
+        
+        // Check if reached or exceeded target
+        if (currentValue >= targetValue) {
+            currentValue = targetValue;
+            clearInterval(counter);
+        }
+        
+        // Update the element text
+        element.textContent = prefix + currentValue.toFixed(2) + suffix;
+    }, refreshInterval);
+}
