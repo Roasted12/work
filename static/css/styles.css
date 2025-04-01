@@ -486,14 +486,20 @@ footer {
 }
 
 #individual-prediction-form label {
-    font-weight: 500;
-    margin-bottom: 0.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #fff;
+    display: block;
+    font-size: 0.95rem;
 }
 
 #individual-prediction-form .form-control,
 #individual-prediction-form .form-select {
-    font-size: 0.9rem;
+    font-size: 1rem;
     padding: 0.5rem 0.75rem;
+    background-color: #2c3440;
+    border-color: #495057;
+    color: #fff;
 }
 
 #prediction-result {

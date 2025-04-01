@@ -263,7 +263,7 @@
                                         <i class="bi bi-trophy text-warning mb-3" style="font-size: 2rem;"></i>
                                         <h5>Best Performer</h5>
                                         <p class="small mb-3">View details of your highest accuracy model</p>
-                                        <a href="{{ url_for('show_result', session_id=results|sort(attribute='accuracy', reverse=true)|first.session_id) }}" class="btn btn-outline-warning">
+                                        <a href="{{ url_for('show_result', session_id=(results|sort(attribute='accuracy', reverse=true)|first).session_id) }}" class="btn btn-outline-warning">
                                             <i class="bi bi-star-fill me-1"></i>
                                             View Best Model
                                         </a>
@@ -276,7 +276,7 @@
                                         <i class="bi bi-arrow-repeat text-success mb-3" style="font-size: 2rem;"></i>
                                         <h5>Latest Analysis</h5>
                                         <p class="small mb-3">Check your most recent prediction results</p>
-                                        <a href="{{ url_for('show_result', session_id=results|sort(attribute='timestamp', reverse=true)|first.session_id) }}" class="btn btn-outline-success">
+                                        <a href="{{ url_for('show_result', session_id=(results|sort(attribute='timestamp', reverse=true)|first).session_id) }}" class="btn btn-outline-success">
                                             <i class="bi bi-clock-fill me-1"></i>
                                             View Latest
                                         </a>
