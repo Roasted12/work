@@ -326,7 +326,8 @@ def individual_predict(session_id):
                 input_data_scaled = scaler.transform(input_data) if scaler else input_data
                 model, _, _, _, _ = train_func(X, y)
                 # Make the prediction with the scaled individual data
-                prediction = model.predict(input_data_scaled)[0]
+                predictions = model.predict(input_data_scaled)
+                prediction = predictions[0] if isinstance(predictions, np.ndarray) else int(predictions.iloc[0]) if hasattr(predictions, 'iloc') else int(predictions)
             elif model_type == 'DL':
                 from dl_models import preprocess_data
                 result_data = preprocess_data(X, y)
@@ -341,7 +342,8 @@ def individual_predict(session_id):
                 input_data_scaled = scaler.transform(input_data) if scaler else input_data
                 model, _, _, _, _ = train_func(X, y)
                 # Make the prediction with the scaled individual data
-                prediction = model.predict(input_data_scaled)[0]
+                predictions = model.predict(input_data_scaled)
+                prediction = predictions[0] if isinstance(predictions, np.ndarray) else int(predictions.iloc[0]) if hasattr(predictions, 'iloc') else int(predictions)
             elif model_type == 'QML' or model_type == 'QNN':
                 from quantum_models import preprocess_data
                 result_data = preprocess_data(X, y)
@@ -356,11 +358,13 @@ def individual_predict(session_id):
                 input_data_scaled = scaler.transform(input_data) if scaler else input_data
                 model, _, _, _, _ = train_func(X, y)
                 # Make the prediction with the scaled individual data
-                prediction = model.predict(input_data_scaled)[0]
+                predictions = model.predict(input_data_scaled)
+                prediction = predictions[0] if isinstance(predictions, np.ndarray) else int(predictions.iloc[0]) if hasattr(predictions, 'iloc') else int(predictions)
             else:
                 # Fallback to direct prediction
                 model, _, _, _, _ = train_func(X, y)
-                prediction = model.predict(input_data)[0]
+                predictions = model.predict(input_data)
+                prediction = predictions[0] if isinstance(predictions, np.ndarray) else int(predictions.iloc[0]) if hasattr(predictions, 'iloc') else int(predictions)
             
             # Redirect to result page with the prediction
             return redirect(url_for('show_result', session_id=session_id, individual_prediction=int(prediction)))
