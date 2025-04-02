@@ -1,17 +1,31 @@
 from datetime import datetime
-from sqlalchemy.orm import DeclarativeBase
-from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
-# Define base class for SQLAlchemy models
-class Base(DeclarativeBase):
-    pass
+# Import db from app to avoid circular imports
+from app import db
 
-# Initialize SQLAlchemy
-db = SQLAlchemy(model_class=Base)
-
-# Import this after db initialization to avoid circular imports
-from app import app
-db.init_app(app)
+class User(UserMixin, db.Model):
+    """User model for authentication."""
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(256), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship with results
+    results = db.relationship('Result', backref='user', lazy='dynamic')
+    
+    def set_password(self, password):
+        """Generate hashed password."""
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        """Check if password matches."""
+        return check_password_hash(self.password_hash, password)
+        
+    def __repr__(self):
+        return f"<User {self.username}>"
 
 class Result(db.Model):
     """Model for storing prediction results."""
@@ -27,10 +41,11 @@ class Result(db.Model):
     f1_score = db.Column(db.Float, nullable=False)
     confusion_matrix_img = db.Column(db.Text, nullable=False)  # Base64 encoded image
     roc_curve_img = db.Column(db.Text, nullable=False)  # Base64 encoded image
+    
+    # Foreign key to link results to users
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     def __repr__(self):
         return f"<Result {self.session_id}>"
 
-# Create tables
-with app.app_context():
-    db.create_all()
+# Tables will be created in the app context in app.py

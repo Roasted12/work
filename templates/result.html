@@ -1,517 +1,112 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prediction Results - Heart Disease Prediction System</title>
-    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
-                Heart Disease Prediction
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">
-                            <i class="bi bi-house-door-fill me-1"></i> Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('history') }}">
-                            <i class="bi bi-clock-history me-1"></i> History
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% extends 'base.html' %}
 
-    <!-- Main Content -->
-    <div class="container main-container">
-        <!-- Header -->
-        <div class="row mb-4 animate__animated animate__fadeIn">
-            <div class="col-lg-10 mx-auto text-center">
-                <h1 class="display-4 mb-3">Prediction Results</h1>
-                <p class="lead">
-                    Analysis complete for your heart disease prediction
-                </p>
-                <div class="alert alert-success d-flex align-items-center">
-                    <div class="me-3">
-                        <i class="bi bi-check-circle-fill" style="font-size: 2rem;"></i>
-                    </div>
-                    <div>
-                        <h5 class="alert-heading mb-1">Analysis Successful!</h5>
-                        <p class="mb-0">Your heart disease dataset has been analyzed using the selected model. Review the detailed metrics and visualizations below.</p>
-                    </div>
+{% block title %}Prediction Results - CardioInsight AI{% endblock %}
+
+{% block content %}
+<!-- Main Content -->
+<div class="container main-container">
+    <!-- Header -->
+    <div class="row mb-4 animate__animated animate__fadeIn">
+        <div class="col-lg-10 mx-auto text-center">
+            <h1 class="display-4 mb-3">Prediction Results</h1>
+            <p class="lead">
+                Analysis complete for your heart disease prediction
+            </p>
+            <div class="alert alert-success d-flex align-items-center">
+                <i class="bi bi-check-circle-fill fs-3 me-3"></i>
+                <div>
+                    <h5 class="mb-1">Model: {{ result.model_name }}</h5>
+                    <p class="mb-0">File: {{ result.filename }}</p>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Results Section -->
-        <div class="row">
-            <div class="col-lg-10 mx-auto">
-                <!-- Model Summary Card -->
-                <div class="card shadow mb-4 animate__animated animate__fadeInUp">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="bi bi-info-circle-fill me-2"></i>
-                            Model Summary
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-2 text-center mb-3 mb-md-0">
-                                {% if result.model_type == 'ML' %}
-                                    <i class="bi bi-diagram-3 text-primary" style="font-size: 3rem;"></i>
-                                {% elif result.model_type == 'DL' %}
-                                    <i class="bi bi-cpu-fill text-success" style="font-size: 3rem;"></i>
-                                {% elif result.model_type == 'QML' or result.model_type == 'QNN' %}
-                                    <i class="bi bi-atom text-info" style="font-size: 3rem;"></i>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-10">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <h6 class="mb-0 me-2">Model Type:</h6>
-                                            <span class="badge 
-                                                {% if result.model_type == 'ML' %}badge-ml
-                                                {% elif result.model_type == 'DL' %}badge-dl
-                                                {% elif result.model_type == 'QML' %}badge-qml
-                                                {% elif result.model_type == 'QNN' %}badge-qnn{% endif %}">
-                                                {{ result.model_type }}
-                                            </span>
-                                        </div>
-                                        <h6>Model Name: <span class="text-light">{{ result.model_name }}</span></h6>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6>Dataset: <span class="text-light">{{ result.filename }}</span></h6>
-                                        <h6>Analysis Date: <span class="text-light">{{ result.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span></h6>
-                                    </div>
-                                </div>
-                                <div class="mt-3">
-                                    <div class="alert alert-light mb-0">
-                                        <div class="d-flex">
-                                            <div class="me-3">
-                                                <i class="bi bi-lightbulb-fill text-warning"></i>
-                                            </div>
-                                            <div>
-                                                <strong>Model Insight:</strong>
-                                                {% if result.model_type == 'ML' %}
-                                                    This classic machine learning model uses statistical patterns to identify heart disease risk factors.
-                                                {% elif result.model_type == 'DL' %}
-                                                    This neural network model learns complex patterns in the heart data that might not be obvious to traditional methods.
-                                                {% elif result.model_type == 'QML' %}
-                                                    This quantum-inspired algorithm simulates how quantum computing could analyze heart health data.
-                                                {% elif result.model_type == 'QNN' %}
-                                                    This hybrid classical-quantum model simulates a combination of neural networks with quantum computing principles.
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Performance Metrics Card -->
-                <div class="card shadow mb-4 animate__animated animate__fadeInUp animate__delay-1s">
-                    <div class="card-header bg-success text-white">
+    <!-- Results Section -->
+    <div class="row mb-4">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow animate__animated animate__fadeInUp">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <i class="bi bi-graph-up me-2"></i>
-                            Performance Metrics
+                            Model Performance Metrics
                         </h5>
+                        <span class="badge bg-light text-dark">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ result.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                        </span>
                     </div>
-                    <div class="card-body">
-                        <div class="row g-4">
-                            <div class="col-md-3">
-                                <div class="card metric-card h-100">
-                                    <div class="mb-3" style="height: 150px;">
-                                        <canvas id="accuracy-chart" data-value="{{ result.accuracy }}"></canvas>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <!-- Overall Metrics -->
+                        <div class="col-md-6">
+                            <div class="metric-cards">
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <div class="card text-center metric-card accuracy" data-value="{{ result.accuracy }}">
+                                            <div class="card-body">
+                                                <canvas id="accuracyChart" height="120"></canvas>
+                                                <h5 class="metric-title">Accuracy</h5>
+                                                <h3 class="metric-value">{{ "%.1f"|format(result.accuracy*100) }}%</h3>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h5>Accuracy</h5>
-                                    <div class="metric-value">{{ "%.2f"|format(result.accuracy * 100) }}%</div>
-                                    <div class="text-muted small">Overall prediction correctness</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card metric-card h-100">
-                                    <div class="mb-3" style="height: 150px;">
-                                        <canvas id="precision-chart" data-value="{{ result.precision }}"></canvas>
+                                    <div class="col-6">
+                                        <div class="card text-center metric-card precision" data-value="{{ result.precision }}">
+                                            <div class="card-body">
+                                                <canvas id="precisionChart" height="120"></canvas>
+                                                <h5 class="metric-title">Precision</h5>
+                                                <h3 class="metric-value">{{ "%.1f"|format(result.precision*100) }}%</h3>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h5>Precision</h5>
-                                    <div class="metric-value">{{ "%.2f"|format(result.precision * 100) }}%</div>
-                                    <div class="text-muted small">Positive prediction accuracy</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card metric-card h-100">
-                                    <div class="mb-3" style="height: 150px;">
-                                        <canvas id="recall-chart" data-value="{{ result.recall }}"></canvas>
+                                    <div class="col-6">
+                                        <div class="card text-center metric-card recall" data-value="{{ result.recall }}">
+                                            <div class="card-body">
+                                                <canvas id="recallChart" height="120"></canvas>
+                                                <h5 class="metric-title">Recall</h5>
+                                                <h3 class="metric-value">{{ "%.1f"|format(result.recall*100) }}%</h3>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h5>Recall</h5>
-                                    <div class="metric-value">{{ "%.2f"|format(result.recall * 100) }}%</div>
-                                    <div class="text-muted small">True positive detection rate</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card metric-card h-100">
-                                    <div class="mb-3" style="height: 150px;">
-                                        <canvas id="f1-chart" data-value="{{ result.f1_score }}"></canvas>
+                                    <div class="col-6">
+                                        <div class="card text-center metric-card f1" data-value="{{ result.f1_score }}">
+                                            <div class="card-body">
+                                                <canvas id="f1Chart" height="120"></canvas>
+                                                <h5 class="metric-title">F1 Score</h5>
+                                                <h3 class="metric-value">{{ "%.1f"|format(result.f1_score*100) }}%</h3>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h5>F1 Score</h5>
-                                    <div class="metric-value">{{ "%.2f"|format(result.f1_score * 100) }}%</div>
-                                    <div class="text-muted small">Precision-recall balance</div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="alert alert-light mt-4">
-                            <div class="d-flex">
-                                <div class="me-3">
-                                    <i class="bi bi-info-circle-fill text-primary"></i>
-                                </div>
-                                <div>
-                                    <h6>Understanding these metrics:</h6>
-                                    <ul class="mb-0 small">
-                                        <li><strong>Accuracy:</strong> The percentage of total predictions that were correct</li>
-                                        <li><strong>Precision:</strong> Of all predicted heart disease cases, how many actually had the disease</li>
-                                        <li><strong>Recall:</strong> Of all actual heart disease cases, how many were correctly identified</li>
-                                        <li><strong>F1 Score:</strong> The harmonic mean of precision and recall, balancing both metrics</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Visualizations -->
-                <div class="row animate__animated animate__fadeInUp animate__delay-2s">
-                    <div class="col-md-6">
-                        <div class="card shadow mb-4">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-grid-3x3 me-2"></i>
-                                    Confusion Matrix
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="text-center">
-                                    <img src="data:image/png;base64,{{ result.confusion_matrix_img }}" class="img-fluid rounded" alt="Confusion Matrix">
-                                </div>
-                                <div class="mt-3">
-                                    <h6>What is this?</h6>
-                                    <p class="mb-0 small text-muted">
-                                        This matrix shows the counts of true positives (correctly predicted disease), true negatives (correctly predicted healthy), 
-                                        false positives (incorrectly predicted disease), and false negatives (incorrectly predicted healthy).
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card shadow mb-4">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-graph-up-arrow me-2"></i>
-                                    ROC Curve
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="text-center">
-                                    <img src="data:image/png;base64,{{ result.roc_curve_img }}" class="img-fluid rounded" alt="ROC Curve">
-                                </div>
-                                <div class="mt-3">
-                                    <h6>What is this?</h6>
-                                    <p class="mb-0 small text-muted">
-                                        This curve illustrates the trade-off between sensitivity (true positive rate) and specificity (false positive rate) 
-                                        at various threshold settings. The area under the curve (AUC) measures the model's ability to distinguish between classes.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Individual Prediction Section -->
-                <div class="card shadow mb-4 animate__animated animate__fadeInUp animate__delay-3s">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="bi bi-person-fill me-2"></i>
-                            Individual Prediction
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row align-items-center mb-3">
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center mb-2">
-                                    <h5 class="mb-0">Get a personalized prediction</h5>
-                                </div>
-                                <p class="mb-0">
-                                    Enter your own health parameters to see your heart disease risk prediction using the trained model:
-                                    <span class="badge 
-                                        {% if result.model_type == 'ML' %}badge-ml
-                                        {% elif result.model_type == 'DL' %}badge-dl
-                                        {% elif result.model_type == 'QML' %}badge-qml
-                                        {% elif result.model_type == 'QNN' %}badge-qnn{% endif %}">
-                                        {{ result.model_type }}
-                                    </span>
-                                    <span class="ms-1">{{ result.model_name }}</span>
-                                </p>
-                            </div>
-                            <div class="col-md-6 text-md-end">
-                                <button type="button" class="btn btn-primary mt-2 mt-md-0" data-bs-toggle="collapse" data-bs-target="#predictionForm" aria-expanded="{% if individual_prediction is defined %}false{% else %}true{% endif %}" aria-controls="predictionForm">
-                                    <i class="bi bi-heart-pulse me-2"></i>
-                                    Make Individual Prediction
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Show the form by default if no prediction yet -->
-                        <div class="collapse {% if individual_prediction is not defined %}show{% endif %}" id="predictionForm">
-                            <div class="card card-body border-0 bg-dark">
-                                <form id="individual-prediction-form" method="post" action="{{ url_for('individual_predict', session_id=result.session_id) }}">
-                                    <div class="row g-3">
-                                        <div class="col-md-4">
-                                            <label for="age" class="form-label">Age</label>
-                                            <input type="number" class="form-control" id="age" name="age" min="1" max="120" required>
+                        <!-- Charts -->
+                        <div class="col-md-6">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-primary bg-opacity-75 text-white py-2">
+                                            <h6 class="mb-0">Confusion Matrix</h6>
                                         </div>
-                                        <div class="col-md-4">
-                                            <label for="sex" class="form-label">Sex</label>
-                                            <select class="form-select" id="sex" name="sex" required>
-                                                <option value="" selected disabled>Select</option>
-                                                <option value="1">Male</option>
-                                                <option value="0">Female</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label for="cp" class="form-label">Chest Pain Type</label>
-                                            <select class="form-select" id="cp" name="cp" required>
-                                                <option value="" selected disabled>Select</option>
-                                                <option value="0">Typical Angina</option>
-                                                <option value="1">Atypical Angina</option>
-                                                <option value="2">Non-anginal Pain</option>
-                                                <option value="3">Asymptomatic</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row g-3 mt-1">
-                                        <div class="col-md-4">
-                                            <label for="trestbps" class="form-label">Resting Blood Pressure (mm Hg)</label>
-                                            <input type="number" class="form-control" id="trestbps" name="trestbps" min="50" max="250" required>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label for="chol" class="form-label">Cholesterol (mg/dl)</label>
-                                            <input type="number" class="form-control" id="chol" name="chol" min="50" max="600" required>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label for="fbs" class="form-label">Fasting Blood Sugar > 120 mg/dl</label>
-                                            <select class="form-select" id="fbs" name="fbs" required>
-                                                <option value="" selected disabled>Select</option>
-                                                <option value="1">Yes</option>
-                                                <option value="0">No</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row g-3 mt-1">
-                                        <div class="col-md-4">
-                                            <label for="restecg" class="form-label">Resting ECG Results</label>
-                                            <select class="form-select" id="restecg" name="restecg" required>
-                                                <option value="" selected disabled>Select</option>
-                                                <option value="0">Normal</option>
-                                                <option value="1">ST-T Wave Abnormality</option>
-                                                <option value="2">Left Ventricular Hypertrophy</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label for="thalach" class="form-label">Max Heart Rate Achieved</label>
-                                            <input type="number" class="form-control" id="thalach" name="thalach" min="50" max="250" required>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label for="exang" class="form-label">Exercise Induced Angina</label>
-                                            <select class="form-select" id="exang" name="exang" required>
-                                                <option value="" selected disabled>Select</option>
-                                                <option value="1">Yes</option>
-                                                <option value="0">No</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row g-3 mt-1">
-                                        <div class="col-md-4">
-                                            <label for="oldpeak" class="form-label">ST Depression Induced by Exercise</label>
-                                            <input type="number" class="form-control" id="oldpeak" name="oldpeak" min="0" max="10" step="0.1" required>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label for="slope" class="form-label">Slope of Peak Exercise ST Segment</label>
-                                            <select class="form-select" id="slope" name="slope" required>
-                                                <option value="" selected disabled>Select</option>
-                                                <option value="0">Upsloping</option>
-                                                <option value="1">Flat</option>
-                                                <option value="2">Downsloping</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label for="ca" class="form-label">Number of Major Vessels</label>
-                                            <select class="form-select" id="ca" name="ca" required>
-                                                <option value="" selected disabled>Select</option>
-                                                <option value="0">0</option>
-                                                <option value="1">1</option>
-                                                <option value="2">2</option>
-                                                <option value="3">3</option>
-                                                <option value="4">4</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row g-3 mt-1">
-                                        <div class="col-md-4">
-                                            <label for="thal" class="form-label">Thalassemia</label>
-                                            <select class="form-select" id="thal" name="thal" required>
-                                                <option value="" selected disabled>Select</option>
-                                                <option value="1">Normal</option>
-                                                <option value="2">Fixed Defect</option>
-                                                <option value="3">Reversible Defect</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="alert alert-info mt-4 mb-0">
-                                                <div class="d-flex">
-                                                    <div class="me-3">
-                                                        <i class="bi bi-info-circle-fill"></i>
-                                                    </div>
-                                                    <div>
-                                                        <p class="mb-0 small">
-                                                            <strong>Note:</strong> These values are used solely for prediction purposes. No personal data will be stored.
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="text-center mt-4">
-                                        <button type="submit" class="btn btn-success btn-lg">
-                                            <i class="bi bi-magic me-2"></i>
-                                            Calculate Prediction
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        
-                        <!-- Prediction Result (Hidden until prediction is made) -->
-                        {% if individual_prediction is defined %}
-                        <div id="prediction-result" class="mt-4">
-                            <div class="card border-0 bg-dark">
-                                <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-3 text-center mb-3 mb-md-0">
-                                            {% if individual_prediction == 1 %}
-                                            <div class="prediction-circle risk">
-                                                <i class="bi bi-exclamation-triangle-fill"></i>
-                                            </div>
-                                            {% else %}
-                                            <div class="prediction-circle healthy">
-                                                <i class="bi bi-heart-fill"></i>
-                                            </div>
-                                            {% endif %}
-                                        </div>
-                                        <div class="col-md-9">
-                                            <h4 class="mb-3">
-                                                {% if individual_prediction == 1 %}
-                                                <span class="text-danger">Higher Risk of Heart Disease</span>
-                                                {% else %}
-                                                <span class="text-success">Lower Risk of Heart Disease</span>
-                                                {% endif %}
-                                            </h4>
-                                            <p>
-                                                {% if individual_prediction == 1 %}
-                                                Based on the values you entered, the model predicts a higher risk of heart disease. Please consult with a healthcare professional for proper evaluation.
-                                                {% else %}
-                                                Based on the values you entered, the model predicts a lower risk of heart disease. However, this is not a medical diagnosis. Regular check-ups are still recommended.
-                                                {% endif %}
-                                            </p>
-                                            <div class="alert alert-warning mb-0">
-                                                <i class="bi bi-shield-exclamation me-2"></i>
-                                                <strong>Disclaimer:</strong> This prediction is based on a statistical model and should not be considered medical advice. Always consult with a healthcare professional for proper diagnosis and treatment.
-                                            </div>
+                                        <div class="card-body d-flex justify-content-center">
+                                            <img src="{{ url_for('get_plot', session_id=result.session_id, plot_type='confusion_matrix') }}" 
+                                                class="img-fluid plot-image" alt="Confusion Matrix">
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Actions Section -->
-                <div class="card shadow mb-4 animate__animated animate__fadeInUp animate__delay-4s">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">
-                            <i class="bi bi-gear-fill me-2"></i>
-                            Actions
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="card h-100 bg-light text-dark">
-                                    <div class="card-body text-center">
-                                        <div class="mb-3">
-                                            <i class="bi bi-arrow-repeat text-primary" style="font-size: 2rem;"></i>
+                                <div class="col-12">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-primary bg-opacity-75 text-white py-2">
+                                            <h6 class="mb-0">ROC Curve</h6>
                                         </div>
-                                        <h5>Try Another Model</h5>
-                                        <p class="small">Compare results across different prediction models</p>
-                                        <a href="{{ url_for('index') }}" class="btn btn-outline-primary mt-2">
-                                            <i class="bi bi-arrow-left me-1"></i>
-                                            New Prediction
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="card h-100 bg-light text-dark">
-                                    <div class="card-body text-center">
-                                        <div class="mb-3">
-                                            <i class="bi bi-download text-success" style="font-size: 2rem;"></i>
+                                        <div class="card-body d-flex justify-content-center">
+                                            <img src="{{ url_for('get_plot', session_id=result.session_id, plot_type='roc_curve') }}" 
+                                                class="img-fluid plot-image" alt="ROC Curve">
                                         </div>
-                                        <h5>Export Results</h5>
-                                        <p class="small">Download prediction results as CSV file</p>
-                                        <button id="export-button" class="btn btn-outline-success mt-2" data-session-id="{{ result.session_id }}">
-                                            <i class="bi bi-file-earmark-spreadsheet me-1"></i>
-                                            Export Data
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card h-100 bg-light text-dark">
-                                    <div class="card-body text-center">
-                                        <div class="mb-3">
-                                            <i class="bi bi-clock-history text-info" style="font-size: 2rem;"></i>
-                                        </div>
-                                        <h5>View History</h5>
-                                        <p class="small">See all previous prediction results</p>
-                                        <a href="{{ url_for('history') }}" class="btn btn-outline-info mt-2">
-                                            <i class="bi bi-list-ul me-1"></i>
-                                            Prediction History
-                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -522,36 +117,194 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6 text-center text-md-start">
-                    <div class="d-flex align-items-center justify-content-center justify-content-md-start">
-                        <i class="bi bi-heart-pulse-fill text-danger me-2" style="font-size: 2rem;"></i>
-                        <div>
-                            <h5 class="mb-0">Heart Disease Prediction System</h5>
-                            <p class="small text-muted mb-0">ML, DL, and Quantum Models</p>
+    <!-- Individual Prediction Section -->
+    <div class="row mb-4">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow animate__animated animate__fadeInUp">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-vcard me-2"></i>
+                        Individual Prediction
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if individual_prediction is not none %}
+                    <div class="prediction-result mb-4">
+                        <div class="alert {% if individual_prediction == 1 %}alert-danger{% else %}alert-success{% endif %} d-flex align-items-center">
+                            <div class="prediction-icon fs-1 me-3">
+                                {% if individual_prediction == 1 %}
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                {% else %}
+                                <i class="bi bi-check-circle-fill"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 class="alert-heading">
+                                    {% if individual_prediction == 1 %}
+                                    Heart Disease Detected
+                                    {% else %}
+                                    No Heart Disease Detected
+                                    {% endif %}
+                                </h4>
+                                <p class="mb-0">
+                                    {% if individual_prediction == 1 %}
+                                    The model predicts that this patient likely has heart disease. Please consult with a healthcare professional for proper diagnosis and treatment options.
+                                    {% else %}
+                                    The model predicts that this patient likely doesn't have heart disease. Regular check-ups are still recommended.
+                                    {% endif %}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
-                    <p class="mb-0">
-                        <i class="bi bi-clipboard-data me-2"></i>
-                        Advanced medical data analysis platform
-                    </p>
-                    <p class="small text-muted mb-0">
-                        <i class="bi bi-calendar3 me-2"></i>
-                        Updated: April 2025
-                    </p>
+                    {% endif %}
+
+                    <h5 class="mb-3">Make a New Individual Prediction</h5>
+                    <p>Enter patient data to predict heart disease likelihood using the trained model:</p>
+                    
+                    <form action="{{ url_for('individual_predict', session_id=result.session_id) }}" method="post" class="row g-3" id="individual-prediction-form">
+                        <div class="col-md-4">
+                            <label for="age" class="form-label">Age</label>
+                            <input type="number" class="form-control" id="age" name="age" required min="20" max="100" step="1">
+                            <div class="form-text">Patient's age in years (20-100)</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="sex" class="form-label">Sex</label>
+                            <select class="form-select" id="sex" name="sex" required>
+                                <option value="" selected disabled>Select gender</option>
+                                <option value="1">Male</option>
+                                <option value="0">Female</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="cp" class="form-label">Chest Pain Type</label>
+                            <select class="form-select" id="cp" name="cp" required>
+                                <option value="" selected disabled>Select type</option>
+                                <option value="0">Typical Angina</option>
+                                <option value="1">Atypical Angina</option>
+                                <option value="2">Non-anginal Pain</option>
+                                <option value="3">Asymptomatic</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="trestbps" class="form-label">Resting Blood Pressure</label>
+                            <input type="number" class="form-control" id="trestbps" name="trestbps" required min="90" max="200" step="1">
+                            <div class="form-text">in mm Hg (90-200)</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="chol" class="form-label">Serum Cholesterol</label>
+                            <input type="number" class="form-control" id="chol" name="chol" required min="100" max="600" step="1">
+                            <div class="form-text">in mg/dl (100-600)</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="fbs" class="form-label">Fasting Blood Sugar</label>
+                            <select class="form-select" id="fbs" name="fbs" required>
+                                <option value="" selected disabled>Select option</option>
+                                <option value="1">Greater than 120 mg/dl</option>
+                                <option value="0">Less than or equal to 120 mg/dl</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="restecg" class="form-label">Resting ECG Results</label>
+                            <select class="form-select" id="restecg" name="restecg" required>
+                                <option value="" selected disabled>Select result</option>
+                                <option value="0">Normal</option>
+                                <option value="1">ST-T Wave Abnormality</option>
+                                <option value="2">Left Ventricular Hypertrophy</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="thalach" class="form-label">Max Heart Rate</label>
+                            <input type="number" class="form-control" id="thalach" name="thalach" required min="60" max="220" step="1">
+                            <div class="form-text">Maximum heart rate achieved (60-220)</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="exang" class="form-label">Exercise Induced Angina</label>
+                            <select class="form-select" id="exang" name="exang" required>
+                                <option value="" selected disabled>Select option</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="oldpeak" class="form-label">ST Depression</label>
+                            <input type="number" class="form-control" id="oldpeak" name="oldpeak" required min="0" max="10" step="0.1">
+                            <div class="form-text">ST depression induced by exercise (0-10)</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="slope" class="form-label">Slope of Peak ST Segment</label>
+                            <select class="form-select" id="slope" name="slope" required>
+                                <option value="" selected disabled>Select slope</option>
+                                <option value="0">Upsloping</option>
+                                <option value="1">Flat</option>
+                                <option value="2">Downsloping</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ca" class="form-label">Number of Major Vessels</label>
+                            <select class="form-select" id="ca" name="ca" required>
+                                <option value="" selected disabled>Select number</option>
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            </select>
+                            <div class="form-text">Colored by fluoroscopy (0-4)</div>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="thal" class="form-label">Thalassemia</label>
+                            <select class="form-select" id="thal" name="thal" required>
+                                <option value="" selected disabled>Select type</option>
+                                <option value="0">Normal</option>
+                                <option value="1">Fixed Defect</option>
+                                <option value="2">Reversible Defect</option>
+                                <option value="3">Other</option>
+                            </select>
+                            <div class="form-text">Blood disorder characterized by less hemoglobin and fewer red blood cells</div>
+                        </div>
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-heart-pulse me-2"></i>
+                                Predict Heart Disease
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </footer>
+    </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
-</body>
-</html>
+    <!-- Action Buttons -->
+    <div class="row mb-5">
+        <div class="col-lg-10 mx-auto">
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Return to Home
+                </a>
+                <div>
+                    <a href="{{ url_for('export_result', session_id=result.session_id) }}" class="btn btn-outline-success me-2">
+                        <i class="bi bi-download me-2"></i>
+                        Export Results
+                    </a>
+                    <a href="{{ url_for('history') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-clock-history me-2"></i>
+                        View History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the metric charts
+        initMetricCharts();
+    });
+</script>
+{% endblock %}

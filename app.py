@@ -6,10 +6,15 @@ import base64
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from sqlalchemy.orm import DeclarativeBase
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField, EmailField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -35,24 +40,11 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
-# Define models
-class Result(db.Model):
-    """Model for storing prediction results."""
-    id = db.Column(db.Integer, primary_key=True)
-    session_id = db.Column(db.String(36), unique=True, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    filename = db.Column(db.String(255), nullable=False)
-    model_type = db.Column(db.String(50), nullable=False)  # ML, DL, QML, QNN
-    model_name = db.Column(db.String(50), nullable=False)  # Specific model name
-    accuracy = db.Column(db.Float, nullable=False)
-    precision = db.Column(db.Float, nullable=False)
-    recall = db.Column(db.Float, nullable=False)
-    f1_score = db.Column(db.Float, nullable=False)
-    confusion_matrix_img = db.Column(db.Text, nullable=False)  # Base64 encoded image
-    roc_curve_img = db.Column(db.Text, nullable=False)  # Base64 encoded image
-
-    def __repr__(self):
-        return f"<Result {self.session_id}>"
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access this page.'
 
 # Create tables
 with app.app_context():
@@ -103,85 +95,6 @@ MODEL_CATEGORIES = {
 def index():
     """Render the main page with the upload form."""
     return render_template('index.html')
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    """Process the uploaded file and chosen model to make predictions."""
-    
-    # Check if file was uploaded
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-    
-    file = request.files['file']
-    
-    # Check if file was selected
-    if file.filename == '':
-        flash('No selected file')
-        return redirect(request.url)
-    
-    # Check if model was selected
-    model_type = request.form.get('model_type')
-    if not model_type or model_type not in MODEL_FUNCTIONS:
-        flash('Invalid model selection')
-        return redirect(request.url)
-    
-    # Read and validate the uploaded CSV file
-    try:
-        df = pd.read_csv(file)
-        
-        # Check if the dataframe has the expected columns
-        if not all(col in df.columns for col in EXPECTED_COLUMNS):
-            flash(f'Invalid CSV format. Expected columns: {", ".join(EXPECTED_COLUMNS)}')
-            return redirect(request.url)
-        
-        # Extract features and target
-        X = df.drop('target', axis=1)
-        y = df['target']
-        
-        # Train the selected model and get predictions
-        logger.info(f"Training {model_type} model...")
-        train_func = MODEL_FUNCTIONS[model_type]
-        model, y_pred, y_prob, X_test, y_test = train_func(X, y)
-        
-        # Calculate evaluation metrics
-        logger.info("Calculating evaluation metrics...")
-        metrics = calculate_metrics(y_test, y_pred, y_prob)
-        
-        # Generate plots
-        logger.info("Generating visualization plots...")
-        confusion_matrix_img = generate_confusion_matrix_plot(y_test, y_pred)
-        roc_curve_img = generate_roc_curve_plot(y_test, y_prob)
-        
-        # Generate a unique session ID
-        session_id = str(uuid.uuid4())
-        
-        # Save results to the database
-        logger.info("Saving results to database...")
-        result = Result(
-            session_id=session_id,
-            filename=secure_filename(file.filename),
-            model_type=MODEL_CATEGORIES[model_type],
-            model_name=model_type,
-            accuracy=metrics['accuracy'],
-            precision=metrics['precision'],
-            recall=metrics['recall'],
-            f1_score=metrics['f1_score'],
-            confusion_matrix_img=confusion_matrix_img,
-            roc_curve_img=roc_curve_img
-        )
-        
-        db.session.add(result)
-        db.session.commit()
-        
-        # Redirect to result page
-        logger.info(f"Prediction complete. Redirecting to results page with session ID: {session_id}")
-        return redirect(url_for('show_result', session_id=session_id))
-    
-    except Exception as e:
-        logger.error(f"Error processing file: {str(e)}")
-        flash(f'Error processing file: {str(e)}')
-        return redirect(request.url)
 
 @app.route('/result/<session_id>')
 def show_result(session_id):
@@ -250,9 +163,9 @@ def export_result(session_id):
         flash(f'Error exporting result: {str(e)}')
         return redirect(url_for('index'))
 
-@app.route('/history')
-def history():
-    """Show the history of all prediction results."""
+@app.route('/all_history')
+def all_history():
+    """Show the history of all prediction results (Admin only)."""
     try:
         # Retrieve all results from the database
         results = Result.query.order_by(Result.timestamp.desc()).all()
@@ -420,6 +333,179 @@ def get_plot(session_id, plot_type):
     except Exception as e:
         logger.error(f"Error retrieving plot: {str(e)}")
         return "Error retrieving plot", 500
+
+# Import User model
+# Import models after db setup
+import models
+from models import User, Result
+
+# User loader for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# Forms for authentication
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
+
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=64)])
+    email = EmailField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Register')
+    
+    def validate_username(self, username):
+        user = User.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('That username is already taken. Please choose a different one.')
+    
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('That email is already registered. Please use a different one.')
+
+# Authentication routes
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Your account has been created! You can now log in.', 'success')
+        return redirect(url_for('login'))
+    
+    return render_template('register.html', form=form)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            next_page = request.args.get('next')
+            flash('Login successful!', 'success')
+            return redirect(next_page or url_for('index'))
+        else:
+            flash('Login unsuccessful. Please check your username and password.', 'danger')
+    
+    return render_template('login.html', form=form)
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('index'))
+
+# Update routes to use authentication
+
+# Update predict route to associate results with current user
+@app.route('/predict', methods=['POST'])
+@login_required
+def predict():
+    """Process the uploaded file and chosen model to make predictions."""
+    
+    # Check if file was uploaded
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    
+    file = request.files['file']
+    
+    # Check if file was selected
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    
+    # Check if model was selected
+    model_type = request.form.get('model_type')
+    if not model_type or model_type not in MODEL_FUNCTIONS:
+        flash('Invalid model selection')
+        return redirect(request.url)
+    
+    # Read and validate the uploaded CSV file
+    try:
+        df = pd.read_csv(file)
+        
+        # Check if the dataframe has the expected columns
+        if not all(col in df.columns for col in EXPECTED_COLUMNS):
+            flash(f'Invalid CSV format. Expected columns: {", ".join(EXPECTED_COLUMNS)}')
+            return redirect(request.url)
+        
+        # Extract features and target
+        X = df.drop('target', axis=1)
+        y = df['target']
+        
+        # Train the selected model and get predictions
+        logger.info(f"Training {model_type} model...")
+        train_func = MODEL_FUNCTIONS[model_type]
+        model, y_pred, y_prob, X_test, y_test = train_func(X, y)
+        
+        # Calculate evaluation metrics
+        logger.info("Calculating evaluation metrics...")
+        metrics = calculate_metrics(y_test, y_pred, y_prob)
+        
+        # Generate plots
+        logger.info("Generating visualization plots...")
+        confusion_matrix_img = generate_confusion_matrix_plot(y_test, y_pred)
+        roc_curve_img = generate_roc_curve_plot(y_test, y_prob)
+        
+        # Generate a unique session ID
+        session_id = str(uuid.uuid4())
+        
+        # Save results to the database
+        logger.info("Saving results to database...")
+        result = Result(
+            session_id=session_id,
+            filename=secure_filename(file.filename),
+            model_type=MODEL_CATEGORIES[model_type],
+            model_name=model_type,
+            accuracy=metrics['accuracy'],
+            precision=metrics['precision'],
+            recall=metrics['recall'],
+            f1_score=metrics['f1_score'],
+            confusion_matrix_img=confusion_matrix_img,
+            roc_curve_img=roc_curve_img,
+            user_id=current_user.id  # Associate with current user
+        )
+        
+        db.session.add(result)
+        db.session.commit()
+        
+        # Redirect to result page
+        logger.info(f"Prediction complete. Redirecting to results page with session ID: {session_id}")
+        return redirect(url_for('show_result', session_id=session_id))
+    
+    except Exception as e:
+        logger.error(f"Error processing file: {str(e)}")
+        flash(f'Error processing file: {str(e)}')
+        return redirect(request.url)
+
+# Update history route to show only user's results
+@app.route('/history')
+@login_required
+def history():
+    """Show the history of prediction results for the current user."""
+    try:
+        # Retrieve only results belonging to the current user
+        results = Result.query.filter_by(user_id=current_user.id).order_by(Result.timestamp.desc()).all()
+        return render_template('history.html', results=results)
+    
+    except Exception as e:
+        logger.error(f"Error retrieving history: {str(e)}")
+        flash(f'Error retrieving history: {str(e)}')
+        return redirect(url_for('index'))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

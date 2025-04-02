@@ -1,86 +1,41 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CardioInsight AI: Advanced Heart Disease Prediction Platform</title>
-    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-</head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="bi bi-heart-pulse-fill text-danger me-2"></i>
-                CardioInsight AI
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('index') }}">
-                            <i class="bi bi-house-door-fill me-1"></i> Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('history') }}">
-                            <i class="bi bi-clock-history me-1"></i> History
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% extends 'base.html' %}
 
-    <!-- Main Content -->
-    <div class="container main-container">
-        <!-- Intro Section -->
-        <div class="row mb-4 animate__animated animate__fadeIn">
-            <div class="col-lg-10 mx-auto text-center">
-                <h1 class="display-4 mb-3">CardioInsight AI</h1>
-                <h2 class="h4 mb-3">Advanced Heart Disease Prediction Platform</h2>
-                <p class="lead">
-                    Analyze your heart health data with advanced prediction models including Machine Learning, 
-                    Deep Learning, and Quantum Computing approaches.
-                </p>
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle-fill me-2"></i>
-                    Follow the guided steps below to upload your data, select a model, and review configuration settings before running the prediction.
-                </div>
-            </div>
-        </div>
+{% block title %}CardioInsight AI: Advanced Heart Disease Prediction Platform{% endblock %}
 
-        <!-- Flash Messages -->
-        <div id="notification-container">
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
+{% block content %}
+<div class="container main-container">
+    <!-- Intro Section -->
+    <div class="row mb-4 animate__animated animate__fadeIn">
+        <div class="col-lg-10 mx-auto text-center">
+            <h1 class="display-4 mb-3">CardioInsight AI</h1>
+            <h2 class="h4 mb-3">Advanced Heart Disease Prediction Platform</h2>
+            <p class="lead">
+                Analyze your heart health data with advanced prediction models including Machine Learning, 
+                Deep Learning, and Quantum Computing approaches.
+            </p>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                {% if current_user.is_authenticated %}
+                Follow the guided steps below to upload your data, select a model, and review configuration settings before running the prediction.
+                {% else %}
+                Please <a href="{{ url_for('login') }}">login</a> or <a href="{{ url_for('register') }}">register</a> to use the prediction platform.
                 {% endif %}
-            {% endwith %}
+            </div>
         </div>
+    </div>
 
-        <!-- Wizard Form Section -->
-        <div class="row">
-            <div class="col-lg-10 mx-auto">
-                <div class="card shadow mb-4 animate__animated animate__fadeInUp">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="bi bi-magic me-2"></i>
-                            CardioInsight AI Prediction Wizard
-                        </h5>
-                    </div>
-                    <div class="card-body">
+    {% if current_user.is_authenticated %}
+    <!-- Wizard Form Section -->
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow mb-4 animate__animated animate__fadeInUp">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-magic me-2"></i>
+                        CardioInsight AI Prediction Wizard
+                    </h5>
+                </div>
+                <div class="card-body">
                         <!-- Wizard Progress -->
                         <div class="wizard-container">
                             <div class="wizard-steps">
@@ -650,11 +605,6 @@
                 </div>
             </div>
         </div>
-    </footer>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-</body>
-</html>
+    </div>
+{% endif %}
+{% endblock %}
