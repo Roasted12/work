@@ -221,9 +221,8 @@
                                 {% with best_accuracy = results|map(attribute='accuracy')|list|sort(reverse=True)|first %}
                                     {{ "%.1f"|format(best_accuracy * 100) }}%
                                     {% for result in results %}
-                                        {% if result.accuracy == best_accuracy %}
+                                        {% if result.accuracy == best_accuracy and not loop.previtem or (loop.previtem and loop.previtem.accuracy != best_accuracy) %}
                                             <small class="text-muted">({{ result.model_name }})</small>
-                                            {% break %}
                                         {% endif %}
                                     {% endfor %}
                                 {% endwith %}
@@ -241,9 +240,8 @@
                                 {% with best_f1 = results|map(attribute='f1_score')|list|sort(reverse=True)|first %}
                                     {{ "%.1f"|format(best_f1 * 100) }}%
                                     {% for result in results %}
-                                        {% if result.f1_score == best_f1 %}
+                                        {% if result.f1_score == best_f1 and not loop.previtem or (loop.previtem and loop.previtem.f1_score != best_f1) %}
                                             <small class="text-muted">({{ result.model_name }})</small>
-                                            {% break %}
                                         {% endif %}
                                     {% endfor %}
                                 {% endwith %}
