@@ -200,7 +200,7 @@ def train_variational_classifier(X, y):
     Train a real Variational Quantum Classifier (VQC) using Qiskit.
     Uses ZZFeatureMap for feature embedding and RealAmplitudes for the variational part.
     """
-    print("Using Qiskit Variational Quantum Classifier...")
+    print("Using Qiskit Variational Quantum Classifier on quantum simulator...")
     
     # Preprocess data - reduce dimensions for quantum circuit
     X_train, X_test, y_train, y_test, X_test_original, preprocessing = preprocess_data(
@@ -283,7 +283,7 @@ def train_quantum_neural_network(X, y):
     Train a real Quantum Neural Network (QNN) using Qiskit.
     This implements a multi-layer quantum circuit with entangling gates.
     """
-    print("Using Qiskit Quantum Neural Network...")
+    print("Using Qiskit Quantum Neural Network on quantum simulator...")
     
     # Use one more qubit for QNN
     qnn_qubits = NUM_QUBITS + 1
