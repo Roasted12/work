@@ -276,107 +276,122 @@ def individual_predict(session_id):
         
         # Get the form data
         form_data = request.form
+        logger.debug(f"Received form data: {form_data}")
         
         # Create a DataFrame with a single row for prediction
-        input_data = pd.DataFrame({
-            'age': [float(form_data.get('age'))],
-            'sex': [float(form_data.get('sex'))],
-            'cp': [float(form_data.get('cp'))],
-            'trestbps': [float(form_data.get('trestbps'))],
-            'chol': [float(form_data.get('chol'))],
-            'fbs': [float(form_data.get('fbs'))],
-            'restecg': [float(form_data.get('restecg'))],
-            'thalach': [float(form_data.get('thalach'))],
-            'exang': [float(form_data.get('exang'))],
-            'oldpeak': [float(form_data.get('oldpeak'))],
-            'slope': [float(form_data.get('slope'))],
-            'ca': [float(form_data.get('ca'))],
-            'thal': [float(form_data.get('thal'))]
-        })
+        try:
+            input_data = pd.DataFrame({
+                'age': [float(form_data.get('age'))],
+                'sex': [float(form_data.get('sex'))],
+                'cp': [float(form_data.get('cp'))],
+                'trestbps': [float(form_data.get('trestbps'))],
+                'chol': [float(form_data.get('chol'))],
+                'fbs': [float(form_data.get('fbs'))],
+                'restecg': [float(form_data.get('restecg'))],
+                'thalach': [float(form_data.get('thalach'))],
+                'exang': [float(form_data.get('exang'))],
+                'oldpeak': [float(form_data.get('oldpeak'))],
+                'slope': [float(form_data.get('slope'))],
+                'ca': [float(form_data.get('ca'))],
+                'thal': [float(form_data.get('thal'))]
+            })
+            logger.debug(f"Created input DataFrame: {input_data}")
+        except Exception as e:
+            logger.error(f"Error creating input DataFrame: {str(e)}")
+            flash(f'Error with input data: {str(e)}')
+            return redirect(url_for('show_result', session_id=session_id))
         
         # Handle different model types
         model_name = result.model_name
         model_type = result.model_type
+        logger.debug(f"Using model: {model_name}, type: {model_type}")
         
-        # For demonstration, we'll use a simplified approach
-        # Get the original dataset to fit the model (in production, would consider storing the model)
         try:
-            # Use the heart.csv (or any previously uploaded file that worked with this model)
-            # In a real scenario, we would save the actual model object
+            # Load dataset
             sample_path = 'attached_assets/heart.csv'
+            logger.debug(f"Loading dataset from: {sample_path}")
             df = pd.read_csv(sample_path)
             X = df.drop('target', axis=1)
             y = df['target']
             
-            # Train the model
+            # Verify model exists
+            if model_name not in MODEL_FUNCTIONS:
+                logger.error(f"Model {model_name} not found in MODEL_FUNCTIONS")
+                flash(f'Unknown model: {model_name}')
+                return redirect(url_for('show_result', session_id=session_id))
+            
+            # Get training function
             train_func = MODEL_FUNCTIONS[model_name]
             
-            # Handle preprocessing based on model type
+            # Load appropriate preprocessing module based on model type
+            preprocess_module = None
             if model_type == 'ML':
-                from ml_models import preprocess_data
-                result_data = preprocess_data(X, y)
-                if isinstance(result_data, tuple) and len(result_data) >= 4:
-                    X_train, X_test, y_train, y_test = result_data[:4]
-                    scaler = result_data[-1] if len(result_data) > 4 else None
-                else:
-                    # Fallback if unexpected result format
-                    X_train, X_test, y_train, y_test = X, X, y, y
-                    scaler = None
-                # Scale the input data using the same scaler
-                input_data_scaled = scaler.transform(input_data) if scaler else input_data
-                model, _, _, _, _ = train_func(X, y)
-                # Make the prediction with the scaled individual data
-                predictions = model.predict(input_data_scaled)
-                prediction = predictions[0] if isinstance(predictions, np.ndarray) else int(predictions.iloc[0]) if hasattr(predictions, 'iloc') else int(predictions)
+                from ml_models import preprocess_data as preprocess_module
             elif model_type == 'DL':
-                from dl_models import preprocess_data
-                result_data = preprocess_data(X, y)
-                if isinstance(result_data, tuple) and len(result_data) >= 4:
-                    X_train, X_test, y_train, y_test = result_data[:4]
-                    scaler = result_data[-1] if len(result_data) > 4 else None
-                else:
-                    # Fallback if unexpected result format
-                    X_train, X_test, y_train, y_test = X, X, y, y
-                    scaler = None
-                # Scale the input data using the same scaler
-                input_data_scaled = scaler.transform(input_data) if scaler else input_data
-                model, _, _, _, _ = train_func(X, y)
-                # Make the prediction with the scaled individual data
-                predictions = model.predict(input_data_scaled)
-                prediction = predictions[0] if isinstance(predictions, np.ndarray) else int(predictions.iloc[0]) if hasattr(predictions, 'iloc') else int(predictions)
-            elif model_type == 'QML' or model_type == 'QNN':
-                from quantum_models import preprocess_data
-                result_data = preprocess_data(X, y)
-                if isinstance(result_data, tuple) and len(result_data) >= 4:
-                    X_train, X_test, y_train, y_test = result_data[:4]
-                    scaler = result_data[-1] if len(result_data) > 4 else None
-                else:
-                    # Fallback if unexpected result format
-                    X_train, X_test, y_train, y_test = X, X, y, y
-                    scaler = None
-                # Scale the input data using the same scaler
-                input_data_scaled = scaler.transform(input_data) if scaler else input_data
-                model, _, _, _, _ = train_func(X, y)
-                # Make the prediction with the scaled individual data
-                predictions = model.predict(input_data_scaled)
-                prediction = predictions[0] if isinstance(predictions, np.ndarray) else int(predictions.iloc[0]) if hasattr(predictions, 'iloc') else int(predictions)
+                from dl_models import preprocess_data as preprocess_module
+            elif model_type in ['QML', 'QNN']:
+                from quantum_models import preprocess_data as preprocess_module
             else:
-                # Fallback to direct prediction
-                model, _, _, _, _ = train_func(X, y)
-                predictions = model.predict(input_data)
-                prediction = predictions[0] if isinstance(predictions, np.ndarray) else int(predictions.iloc[0]) if hasattr(predictions, 'iloc') else int(predictions)
+                # Fallback to ML preprocessing
+                logger.warning(f"Unknown model type: {model_type}, falling back to ML preprocessing")
+                from ml_models import preprocess_data as preprocess_module
+            
+            # Preprocess the data
+            logger.debug("Preprocessing data")
+            result_data = preprocess_module(X, y)
+            
+            # Extract the scaler if available
+            scaler = None
+            if isinstance(result_data, tuple) and len(result_data) > 4:
+                scaler = result_data[-1]
+                logger.debug("Found scaler in preprocessing result")
+            
+            # Scale input data if a scaler is available
+            if scaler is not None:
+                logger.debug("Scaling input data")
+                input_data_scaled = scaler.transform(input_data)
+            else:
+                logger.debug("No scaler found, using raw input data")
+                input_data_scaled = input_data
+            
+            # Train the model
+            logger.debug(f"Training model: {model_name}")
+            model, _, _, _, _ = train_func(X, y)
+            
+            # Make the prediction and handle different return types safely
+            logger.debug("Making prediction")
+            raw_predictions = model.predict(input_data_scaled)
+            logger.debug(f"Raw prediction result: {raw_predictions}, type: {type(raw_predictions)}")
+            
+            # Safely extract the prediction value regardless of the return type
+            if isinstance(raw_predictions, np.ndarray):
+                if raw_predictions.size == 1:
+                    prediction = int(raw_predictions[0])
+                else:
+                    prediction = int(raw_predictions[0])
+                logger.debug(f"Extracted prediction from numpy array: {prediction}")
+            elif hasattr(raw_predictions, 'iloc'):  # For pandas Series/DataFrame
+                prediction = int(raw_predictions.iloc[0])
+                logger.debug(f"Extracted prediction from pandas object: {prediction}")
+            elif hasattr(raw_predictions, '__getitem__'):  # For list-like objects
+                prediction = int(raw_predictions[0])
+                logger.debug(f"Extracted prediction from list-like object: {prediction}")
+            else:
+                prediction = int(raw_predictions)  # Direct conversion for scalar values
+                logger.debug(f"Extracted prediction from scalar: {prediction}")
             
             # Redirect to result page with the prediction
-            return redirect(url_for('show_result', session_id=session_id, individual_prediction=int(prediction)))
+            logger.info(f"Individual prediction result: {prediction}")
+            return redirect(url_for('show_result', session_id=session_id, individual_prediction=prediction))
             
         except Exception as e:
             logger.error(f"Error making individual prediction: {str(e)}")
-            flash(f'Error making individual prediction: {str(e)}')
+            flash(f'Error making prediction: {str(e)}')
             return redirect(url_for('show_result', session_id=session_id))
     
     except Exception as e:
-        logger.error(f"Error processing individual prediction: {str(e)}")
-        flash(f'Error processing individual prediction: {str(e)}')
+        logger.error(f"Error in individual prediction process: {str(e)}")
+        flash(f'Error processing prediction request: {str(e)}')
         return redirect(url_for('index'))
 
 @app.route('/plot/<session_id>/<plot_type>')

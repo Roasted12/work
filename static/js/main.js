@@ -139,6 +139,37 @@ function initFileUpload() {
     
     if (!fileInput) return;
     
+    // Cache the last file for persistence after form submission
+    let lastFile = {
+        name: null,
+        size: null
+    };
+    
+    // Check if previously stored filename/size is in sessionStorage
+    const savedFileName = sessionStorage.getItem('lastUploadedFileName');
+    const savedFileSize = sessionStorage.getItem('lastUploadedFileSize');
+    
+    // If we have a saved file name, restore the UI state
+    if (savedFileName && savedFileSize) {
+        if (fileNameDisplay) {
+            fileNameDisplay.textContent = savedFileName;
+        }
+        
+        if (fileSizeDisplay) {
+            fileSizeDisplay.textContent = savedFileSize;
+        }
+        
+        // Show file details
+        if (fileDetailsContainer) {
+            fileDetailsContainer.classList.add('show');
+        }
+        
+        // Add 'has-file' class to container
+        if (fileUploadContainer) {
+            fileUploadContainer.classList.add('has-file');
+        }
+    }
+    
     // Handle file selection
     fileInput.addEventListener('change', function() {
         if (this.files.length > 0) {
@@ -147,12 +178,20 @@ function initFileUpload() {
             // Update file details
             if (fileNameDisplay) {
                 fileNameDisplay.textContent = file.name;
+                // Save to sessionStorage
+                sessionStorage.setItem('lastUploadedFileName', file.name);
             }
             
             if (fileSizeDisplay) {
                 const fileSize = formatFileSize(file.size);
                 fileSizeDisplay.textContent = fileSize;
+                // Save to sessionStorage 
+                sessionStorage.setItem('lastUploadedFileSize', fileSize);
             }
+            
+            // Cache the file info
+            lastFile.name = file.name;
+            lastFile.size = formatFileSize(file.size);
             
             // Show file details
             if (fileDetailsContainer) {
@@ -172,6 +211,14 @@ function initFileUpload() {
             if (fileUploadContainer) {
                 fileUploadContainer.classList.remove('has-file');
             }
+            
+            // Clear sessionStorage
+            sessionStorage.removeItem('lastUploadedFileName');
+            sessionStorage.removeItem('lastUploadedFileSize');
+            
+            // Reset cached file info
+            lastFile.name = null;
+            lastFile.size = null;
         }
     });
     
@@ -323,8 +370,9 @@ function initFormValidation() {
         // Prevent default form submission
         e.preventDefault();
         
-        // Validate file selection
-        if (!fileInput || fileInput.files.length === 0) {
+        // Validate file selection - check both file input and saved filename
+        const savedFileName = sessionStorage.getItem('lastUploadedFileName');
+        if ((!fileInput || fileInput.files.length === 0) && !savedFileName) {
             showNotification('Please select a CSV file to upload.', 'warning');
             return;
         }
@@ -333,6 +381,13 @@ function initFormValidation() {
         if (!modelInput || !modelInput.value) {
             showNotification('Please select a prediction model.', 'warning');
             return;
+        }
+        
+        // Make sure we preserve file name in session storage
+        if (fileInput && fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            sessionStorage.setItem('lastUploadedFileName', file.name);
+            sessionStorage.setItem('lastUploadedFileSize', formatFileSize(file.size));
         }
         
         // Show loading animation
