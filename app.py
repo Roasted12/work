@@ -20,10 +20,6 @@ from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationE
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Define base class for SQLAlchemy models
-class Base(DeclarativeBase):
-    pass
-
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev_secret_key")
@@ -36,8 +32,8 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
 }
 
-# Initialize SQLAlchemy
-db = SQLAlchemy(model_class=Base)
+# Import the db instance from our db_setup module
+from db_setup import db
 db.init_app(app)
 
 # Initialize Flask-Login
@@ -46,15 +42,18 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
-# Create tables
-with app.app_context():
-    db.create_all()
-
 # Import ML and DL models
 from ml_models import train_logistic_regression, train_decision_tree, train_random_forest, train_svm, train_knn
 from dl_models import train_dense_network_1layer, train_dense_network_2layer, train_dense_network_3layer
 from quantum_models import train_variational_classifier, train_quantum_neural_network
 from utils import calculate_metrics, generate_confusion_matrix_plot, generate_roc_curve_plot
+
+# Import models for database tables
+from models import User, Result
+
+# Create tables
+with app.app_context():
+    db.create_all()
 
 # Define the expected columns for the heart disease dataset
 EXPECTED_COLUMNS = [
@@ -334,10 +333,7 @@ def get_plot(session_id, plot_type):
         logger.error(f"Error retrieving plot: {str(e)}")
         return "Error retrieving plot", 500
 
-# Import User model
-# Import models after db setup
-import models
-from models import User, Result
+# User model already imported above
 
 # User loader for Flask-Login
 @login_manager.user_loader
