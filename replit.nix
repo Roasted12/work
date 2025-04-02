@@ -1,5 +1,12 @@
 {pkgs}: {
   deps = [
+    pkgs.rustc
+    pkgs.cargo
+    pkgs.spdlog
+    pkgs.nlohmann_json
+    pkgs.muparserx
+    pkgs.fmt
+    pkgs.catch2
     pkgs.tk
     pkgs.tcl
     pkgs.qhull
