@@ -64,6 +64,30 @@ function initWizard() {
         if (submitBtn) {
             submitBtn.style.display = currentStep === wizardSteps.length - 1 ? 'block' : 'none';
         }
+        
+        // Update review section file information if on review step (step 3)
+        if (currentStep === 2) {
+            // Get references to the review file elements
+            const reviewFilename = document.getElementById('review-filename');
+            const reviewFilesize = document.getElementById('review-filesize');
+            
+            // Get saved file information from sessionStorage
+            const savedFileName = sessionStorage.getItem('lastUploadedFileName');
+            const savedFileSize = sessionStorage.getItem('lastUploadedFileSize');
+            
+            // Update the review file information if elements exist and we have file info
+            if (reviewFilename && savedFileName) {
+                reviewFilename.textContent = savedFileName;
+            } else if (reviewFilename) {
+                reviewFilename.textContent = 'Not selected';
+            }
+            
+            if (reviewFilesize && savedFileSize) {
+                reviewFilesize.textContent = savedFileSize;
+            } else if (reviewFilesize) {
+                reviewFilesize.textContent = '';
+            }
+        }
     }
     
     // Initialize wizard
