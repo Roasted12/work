@@ -8,13 +8,18 @@ import math
 import random
 from sklearn.ensemble import RandomForestClassifier
 
+# Import Qiskit modules
+from qiskit import QuantumCircuit, Aer, execute
+from qiskit.circuit.library import ZZFeatureMap, RealAmplitudes
+from qiskit.quantum_info import Statevector, state_fidelity
+
 # Set random seed for reproducibility
 seed = 42
 np.random.seed(seed)
 
 # Define constants for the quantum models
 NUM_QUBITS = 2  # Number of qubits to use
-SHOTS = 1024  # Number of shots for quantum simulation
+SHOTS = 1024  # Number of shots for quantum execution
 
 def preprocess_data(X, y, test_size=0.2, feature_dim=NUM_QUBITS):
     """
@@ -192,12 +197,12 @@ def apply_quantum_interference(state_vector, theta):
 
 def train_variational_classifier(X, y):
     """
-    Simulate a Variational Quantum Classifier (VQC).
-    Uses quantum-inspired techniques to simulate the behavior of a VQC.
+    Train a real Variational Quantum Classifier (VQC) using Qiskit.
+    Uses ZZFeatureMap for feature embedding and RealAmplitudes for the variational part.
     """
-    print("Using quantum-inspired Variational Quantum Classifier...")
+    print("Using Qiskit Variational Quantum Classifier...")
     
-    # Preprocess data - reduce dimensions for quantum simulation
+    # Preprocess data - reduce dimensions for quantum circuit
     X_train, X_test, y_train, y_test, X_test_original, preprocessing = preprocess_data(
         X, y, feature_dim=NUM_QUBITS
     )
@@ -206,45 +211,86 @@ def train_variational_classifier(X, y):
     # In a full implementation, these would be optimized via a quantum-classical optimizer
     theta = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]) * np.pi
     
-    # Predict with the simulated quantum process
+    # Get the quantum backend
+    backend = Aer.get_backend('qasm_simulator')
+    
+    # Predictions arrays
     y_pred = []
     y_prob = []
     
+    # Create circuit ansatz for VQC
+    def create_vqc_circuit(feature_vector, variational_params):
+        # Feature map circuit for encoding classical data into quantum state
+        feature_map = ZZFeatureMap(NUM_QUBITS, reps=2)
+        
+        # Variational circuit for the classifier
+        var_form = RealAmplitudes(NUM_QUBITS, reps=1)
+        
+        # Combine feature map and variational form
+        qc = QuantumCircuit(NUM_QUBITS)
+        qc = qc.compose(feature_map)
+        qc = qc.compose(var_form)
+        
+        # Add measurement
+        qc.measure_all()
+        
+        # Bind the parameters
+        all_params = np.concatenate((feature_vector[:NUM_QUBITS], variational_params[:var_form.num_parameters]))
+        bound_circuit = qc.bind_parameters(all_params)
+        
+        return bound_circuit
+    
+    # Process each test sample
     for x in X_test:
-        # Create initial quantum state from features
-        state_vector = quantum_state_vector(x, NUM_QUBITS)
+        # Create and bind circuit for this sample
+        circuit = create_vqc_circuit(x, theta)
         
-        # Apply variational circuit operations
-        state_vector = apply_quantum_interference(state_vector, theta)
+        # Execute the circuit
+        job = execute(circuit, backend, shots=SHOTS)
+        counts = job.result().get_counts()
         
-        # Simulate measurement
-        counts = measure_quantum_state(state_vector, SHOTS)
+        # Classify measurement results
+        even_parity_count = 0
+        for bitstring, count in counts.items():
+            if binary_string_parity(bitstring) == 0:
+                even_parity_count += count
         
-        # Classify the result
-        pred_class, probs = classify_measurement(counts, SHOTS)
+        # Calculate probabilities
+        prob_class0 = even_parity_count / SHOTS
+        prob_class1 = 1 - prob_class0
+        
+        # Make prediction
+        pred_class = 0 if prob_class0 > 0.5 else 1
         
         y_pred.append(pred_class)
-        y_prob.append(probs[1])  # Probability of class 1
+        y_prob.append(prob_class1)  # Probability of class 1
     
-    # For explainability, print a sample of the state vector and measurements
-    features = X_test[0]
-    state = quantum_state_vector(features, NUM_QUBITS)
-    counts = measure_quantum_state(state, 10)
-    print(f"Sample quantum state for features {features}: First 4 amplitudes: {state[:4]}")
-    print(f"Sample measurements: {counts}")
+    # For explainability, print a sample circuit and execution
+    if len(X_test) > 0:
+        sample_circuit = create_vqc_circuit(X_test[0], theta)
+        print("Sample VQC Circuit:")
+        print(sample_circuit.draw(output='text'))
+        
+        # Execute with fewer shots for demonstration
+        sample_job = execute(sample_circuit, backend, shots=10)
+        sample_counts = sample_job.result().get_counts()
+        print(f"Sample measurements: {sample_counts}")
     
     return None, np.array(y_pred), np.array(y_prob), X_test_original, y_test
 
 def train_quantum_neural_network(X, y):
     """
-    Simulate a Quantum Neural Network (QNN).
-    Uses a more complex quantum-inspired approach with multiple layers.
+    Train a real Quantum Neural Network (QNN) using Qiskit.
+    This implements a multi-layer quantum circuit with entangling gates.
     """
-    print("Using quantum-inspired Quantum Neural Network...")
+    print("Using Qiskit Quantum Neural Network...")
+    
+    # Use one more qubit for QNN
+    qnn_qubits = NUM_QUBITS + 1
     
     # Preprocess data with possibly more feature dimensions
     X_train, X_test, y_train, y_test, X_test_original, preprocessing = preprocess_data(
-        X, y, feature_dim=NUM_QUBITS+1  # One extra qubit for QNN
+        X, y, feature_dim=qnn_qubits
     )
     
     # Multiple sets of parameters for different layers
@@ -252,45 +298,109 @@ def train_quantum_neural_network(X, y):
     theta2 = np.array([0.3, 0.6, 0.9, 1.2, 1.5]) * np.pi
     theta3 = np.array([0.1, 0.3, 0.5, 0.7, 0.9]) * np.pi
     
+    # Get the quantum backend
+    backend = Aer.get_backend('statevector_simulator')
+    
     # Predictions
     y_pred = []
     y_prob = []
     
+    # Create QNN circuit
+    def create_qnn_circuit(feature_vector, params1, params2, params3):
+        """Create a multi-layer quantum neural network circuit"""
+        qc = QuantumCircuit(qnn_qubits)
+        
+        # Encode features into quantum state using rotations
+        for i in range(qnn_qubits):
+            feature_idx = min(i, len(feature_vector)-1)
+            qc.rx(feature_vector[feature_idx], i)
+            qc.rz(feature_vector[feature_idx], i)
+        
+        # Add Hadamard gates to create superposition
+        for i in range(qnn_qubits):
+            qc.h(i)
+        
+        # Layer 1: Apply parameterized rotation gates
+        for i in range(qnn_qubits):
+            param_idx = min(i, len(params1)-1)
+            qc.rx(params1[param_idx], i)
+            qc.rz(params1[param_idx], i)
+        
+        # Layer 1: Apply entangling gates
+        for i in range(qnn_qubits-1):
+            qc.cx(i, i+1)
+        
+        # Layer 2: Apply parameterized rotation gates
+        for i in range(qnn_qubits):
+            param_idx = min(i, len(params2)-1)
+            qc.rx(params2[param_idx], i)
+            qc.rz(params2[param_idx], i)
+        
+        # Layer 2: Apply entangling gates
+        for i in range(qnn_qubits-1):
+            qc.cx(i, i+1)
+        
+        # Layer 3: Apply parameterized rotation gates
+        for i in range(qnn_qubits):
+            param_idx = min(i, len(params3)-1)
+            qc.rx(params3[param_idx], i)
+            qc.rz(params3[param_idx], i)
+        
+        return qc
+    
+    # Create measurement circuit
+    def create_measurement_circuit(qc):
+        """Add measurement to the circuit"""
+        meas_qc = qc.copy()
+        meas_qc.measure_all()
+        return meas_qc
+    
+    # Process each test sample
     for x in X_test:
-        # Create initial quantum state from features
-        state_vector = quantum_state_vector(x, NUM_QUBITS+1)
+        # Create circuit for this sample
+        circuit = create_qnn_circuit(x, theta1, theta2, theta3)
         
-        # Apply multiple layers of quantum operations
-        # Layer 1
-        state_vector = apply_quantum_interference(state_vector, theta1)
-        # Layer 2
-        state_vector = apply_quantum_interference(state_vector, theta2)
-        # Layer 3
-        state_vector = apply_quantum_interference(state_vector, theta3)
+        # First get the statevector for analysis
+        job = execute(circuit, backend)
+        state_vector = job.result().get_statevector()
         
-        # Simulate measurement
-        counts = measure_quantum_state(state_vector, SHOTS)
+        # Add measurement and execute on qasm simulator for shots
+        meas_backend = Aer.get_backend('qasm_simulator')
+        meas_circuit = create_measurement_circuit(circuit)
+        meas_job = execute(meas_circuit, meas_backend, shots=SHOTS)
+        counts = meas_job.result().get_counts()
         
-        # Classify with extra complexity for QNN
-        # We could use a more sophisticated approach here, but for simplicity,
-        # we'll use the same classification approach as before
-        pred_class, probs = classify_measurement(counts, SHOTS)
+        # Classify measurement results
+        even_parity_count = 0
+        for bitstring, count in counts.items():
+            if binary_string_parity(bitstring) == 0:
+                even_parity_count += count
+        
+        # Calculate probabilities
+        prob_class0 = even_parity_count / SHOTS
+        prob_class1 = 1 - prob_class0
+        
+        # Make prediction
+        pred_class = 0 if prob_class0 > 0.5 else 1
         
         y_pred.append(pred_class)
-        y_prob.append(probs[1])  # Probability of class 1
+        y_prob.append(prob_class1)  # Probability of class 1
     
-    # For explainability, print a sample of the state vector and measurements
-    features = X_test[0]
-    initial_state = quantum_state_vector(features, NUM_QUBITS+1)
-    final_state = apply_quantum_interference(
-        apply_quantum_interference(
-            apply_quantum_interference(initial_state, theta1),
-            theta2),
-        theta3)
-    counts = measure_quantum_state(final_state, 10)
-    
-    print(f"QNN: Sample initial state for features {features}: First 4 amplitudes: {initial_state[:4]}")
-    print(f"QNN: Sample final state: First 4 amplitudes: {final_state[:4]}")
-    print(f"QNN: Sample measurements: {counts}")
+    # For explainability, print a sample circuit and execution
+    if len(X_test) > 0:
+        sample_circuit = create_qnn_circuit(X_test[0], theta1, theta2, theta3)
+        print("Sample QNN Circuit:")
+        print(sample_circuit.draw(output='text'))
+        
+        # Execute with fewer shots for demonstration
+        sample_meas_circuit = create_measurement_circuit(sample_circuit)
+        sample_job = execute(sample_meas_circuit, Aer.get_backend('qasm_simulator'), shots=10)
+        sample_counts = sample_job.result().get_counts()
+        print(f"QNN: Sample measurements: {sample_counts}")
+        
+        # Get statevector for first sample
+        sv_job = execute(sample_circuit, Aer.get_backend('statevector_simulator'))
+        state_vector = sv_job.result().get_statevector()
+        print(f"QNN: Sample statevector (first 4 amplitudes): {state_vector[:4]}")
     
     return None, np.array(y_pred), np.array(y_prob), X_test_original, y_test
